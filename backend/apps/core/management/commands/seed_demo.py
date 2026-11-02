@@ -2,12 +2,10 @@ from datetime import date
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.utils import timezone
 
 from apps.academics.models import (
     AcademicSession,
     Course,
-    CourseAllocation,
     Department,
     Faculty,
     Program,
@@ -17,8 +15,9 @@ from apps.academics.models import (
 from apps.academics.services import allocate_course
 from apps.accounts.models import StaffProfile, StudentProfile, User
 from apps.registration.models import CourseRegistration
-from apps.results.grading import grade_for
-from apps.results.models import ResultSheet, Score
+from apps.registration.services import register_courses
+from apps.results.models import ResultSheet
+from apps.results.services import approve_sheet, save_scores, submit_sheet
 
 DEMO_PASSWORD = "Uemp@2026"
 SUPER_ADMIN_EMAIL = "superadmin@uemp.test"
@@ -98,6 +97,8 @@ HISTORICAL_SCORES = {
     "CSC/2024/003": {"CSC101": (15, 30), "CSC103": (18, 33), "MTH101": (12, 25),
                      "CSC102": (20, 38), "MTH102": (14, 28)},
 }  # fmt: skip
+
+CURRENT_200_LEVEL_COURSES = ["CSC201", "CSC203", "CSC205", "MTH201"]
 
 # Current-semester sheets left in different workflow states so every review path can be demoed.
 CURRENT_SHEETS = [
@@ -214,33 +215,47 @@ class Command(BaseCommand):
         semester_for_term = {Term.FIRST: self.previous_first, Term.SECOND: self.previous_second}
         for course_code, lecturer_email in PREVIOUS_ALLOCATIONS.items():
             course = self.courses[course_code]
-            self._allocate(course, semester_for_term[course.term], lecturer_email)
+            semester = semester_for_term[course.term]
+            self._allocate(course, semester, lecturer_email)
 
-        for matric, course_scores in HISTORICAL_SCORES.items():
-            for course_code, (ca, exam) in course_scores.items():
-                course = self.courses[course_code]
-                semester = semester_for_term[course.term]
-                sheet = self._sheet(course, semester, ResultSheet.Status.APPROVED)
-                self._score(sheet, self.students[matric], ca, exam)
+            # These students were 100 level last session, so their past registrations are
+            # created directly; the registration service only handles the current semester.
+            scores = {}
+            for matric, course_scores in HISTORICAL_SCORES.items():
+                if course_code in course_scores:
+                    registration = CourseRegistration.objects.create(
+                        student=self.students[matric], course=course, semester=semester
+                    )
+                    scores[registration] = course_scores[course_code]
+
+            sheet = self._enter_scores(course, semester, lecturer_email, scores)
+            submit_sheet(sheet=sheet, actor=self.staff[lecturer_email].user)
+            approve_sheet(sheet=sheet, actor=self._department_admin(course))
 
     def _create_current_semester_activity(self):
         for course_code, lecturer_email in CURRENT_ALLOCATIONS.items():
             self._allocate(self.courses[course_code], self.current, lecturer_email)
 
-        for course_code, status, student_scores in CURRENT_SHEETS:
-            sheet = self._sheet(self.courses[course_code], self.current, status)
-            for matric, (ca, exam) in student_scores.items():
-                self._score(sheet, self.students[matric], ca, exam)
-
-        # Register the remaining 200 level courses so the lecturer and admin views have
-        # class lists, but leave the 100 level students unregistered to demo registration.
+        # 200 level students are registered; 100 level students are left unregistered
+        # so course registration can be demoed live.
         for matric in HISTORICAL_SCORES:
-            for course_code in ("CSC201", "CSC203", "CSC205", "MTH201"):
-                CourseRegistration.objects.get_or_create(
-                    student=self.students[matric],
-                    course=self.courses[course_code],
-                    semester=self.current,
-                )
+            register_courses(
+                student=self.students[matric],
+                course_ids=[self.courses[code].pk for code in CURRENT_200_LEVEL_COURSES],
+            )
+
+        for course_code, status, student_scores in CURRENT_SHEETS:
+            course = self.courses[course_code]
+            lecturer_email = CURRENT_ALLOCATIONS[course_code]
+            scores = {
+                CourseRegistration.objects.get(
+                    student=self.students[matric], course=course, semester=self.current
+                ): course_score
+                for matric, course_score in student_scores.items()
+            }
+            sheet = self._enter_scores(course, self.current, lecturer_email, scores)
+            if status == ResultSheet.Status.SUBMITTED:
+                submit_sheet(sheet=sheet, actor=self.staff[lecturer_email].user)
 
     def _allocate(self, course, semester, lecturer_email):
         allocate_course(
@@ -250,29 +265,15 @@ class Command(BaseCommand):
             lecturer=self.staff[lecturer_email],
         )
 
-    def _sheet(self, course, semester, status):
+    def _enter_scores(self, course, semester, lecturer_email, scores):
         sheet = ResultSheet.objects.get(course=course, semester=semester)
-        if sheet.status == status:
-            return sheet
+        entries = [
+            {"registration": registration.pk, "ca_score": ca, "exam_score": exam}
+            for registration, (ca, exam) in scores.items()
+        ]
+        return save_scores(sheet=sheet, actor=self.staff[lecturer_email].user, entries=entries)
 
-        sheet.status = status
-        allocation = CourseAllocation.objects.get(course=course, semester=semester)
-        sheet.submitted_by = allocation.lecturer.user
-        sheet.submitted_at = timezone.now()
-        if status == ResultSheet.Status.APPROVED:
-            sheet.reviewed_by = StaffProfile.objects.get(
-                department=course.department, user__role=User.Role.DEPT_ADMIN
-            ).user
-            sheet.reviewed_at = timezone.now()
-        sheet.save()
-        return sheet
-
-    def _score(self, sheet, student, ca, exam):
-        registration, _ = CourseRegistration.objects.get_or_create(
-            student=student, course=sheet.course, semester=sheet.semester
+    def _department_admin(self, course):
+        return User.objects.get(
+            role=User.Role.DEPT_ADMIN, staff_profile__department=course.department
         )
-        score = Score(sheet=sheet, registration=registration, ca_score=ca, exam_score=exam)
-        if ca is not None and exam is not None:
-            score.total = ca + exam
-            score.grade, score.grade_point = grade_for(score.total)
-        score.save()
