@@ -13,7 +13,6 @@ class Level(models.IntegerChoices):
     L300 = 300, "300 Level"
     L400 = 400, "400 Level"
     L500 = 500, "500 Level"
-    L600 = 600, "600 Level"
 
 
 class Faculty(models.Model):
@@ -91,8 +90,6 @@ class Semester(models.Model):
         ordering = ["-session__start_date", "term"]
         constraints = [
             models.UniqueConstraint(fields=["session", "term"], name="unique_term_per_session"),
-            # Registration, allocation and result entry all key off "the current semester",
-            # so the database guarantees there is never more than one.
             models.UniqueConstraint(
                 fields=["is_current"],
                 condition=Q(is_current=True),
@@ -111,8 +108,6 @@ class Course(models.Model):
     units = models.PositiveSmallIntegerField()
     level = models.PositiveSmallIntegerField(choices=Level.choices)
     term = models.CharField(max_length=10, choices=Term.choices)
-    # A course is owned by one department but can be offered to programs in others
-    # (e.g. a mathematics course taken by computer science students).
     programs = models.ManyToManyField(Program, related_name="courses")
     is_active = models.BooleanField(default=True)
 
