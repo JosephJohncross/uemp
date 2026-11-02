@@ -14,6 +14,7 @@ from apps.academics.models import (
     Semester,
     Term,
 )
+from apps.academics.services import allocate_course
 from apps.accounts.models import StaffProfile, StudentProfile, User
 from apps.registration.models import CourseRegistration
 from apps.results.grading import grade_for
@@ -242,17 +243,19 @@ class Command(BaseCommand):
                 )
 
     def _allocate(self, course, semester, lecturer_email):
-        CourseAllocation.objects.create(
-            course=course, semester=semester, lecturer=self.staff[lecturer_email]
+        allocate_course(
+            actor=self.super_admin,
+            course=course,
+            semester=semester,
+            lecturer=self.staff[lecturer_email],
         )
 
     def _sheet(self, course, semester, status):
-        sheet, created = ResultSheet.objects.get_or_create(
-            course=course, semester=semester, defaults={"status": status}
-        )
-        if not created or status == ResultSheet.Status.DRAFT:
+        sheet = ResultSheet.objects.get(course=course, semester=semester)
+        if sheet.status == status:
             return sheet
 
+        sheet.status = status
         allocation = CourseAllocation.objects.get(course=course, semester=semester)
         sheet.submitted_by = allocation.lecturer.user
         sheet.submitted_at = timezone.now()

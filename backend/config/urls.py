@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from apps.academics import views as academics
 from apps.accounts import views as accounts
 from apps.core.views import health
 
@@ -10,6 +11,13 @@ router = DefaultRouter()
 router.register("students", accounts.StudentViewSet, basename="student")
 router.register("staff", accounts.StaffViewSet, basename="staff")
 router.register("users", accounts.UserViewSet, basename="user")
+router.register("faculties", academics.FacultyViewSet, basename="faculty")
+router.register("departments", academics.DepartmentViewSet, basename="department")
+router.register("programs", academics.ProgramViewSet, basename="program")
+router.register("sessions", academics.AcademicSessionViewSet, basename="session")
+router.register("semesters", academics.SemesterViewSet, basename="semester")
+router.register("courses", academics.CourseViewSet, basename="course")
+router.register("allocations", academics.CourseAllocationViewSet, basename="allocation")
 
 auth_urls = [
     path("csrf/", accounts.CsrfView.as_view()),
