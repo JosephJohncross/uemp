@@ -49,8 +49,8 @@ class Program(models.Model):
         ordering = ["name"]
         constraints = [
             models.CheckConstraint(
-                condition=Q(duration_years__gte=1, duration_years__lte=6),
-                name="program_duration_between_1_and_6",
+                condition=Q(duration_years__gte=1, duration_years__lte=5),
+                name="program_duration_between_1_and_5",
             ),
         ]
 

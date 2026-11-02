@@ -78,7 +78,7 @@ erDiagram
 
 - **User** — custom user (email login). `role`: `STUDENT | LECTURER | DEPT_ADMIN | SUPER_ADMIN`.
   `status`: `ACTIVE | SUSPENDED | DEACTIVATED`; anything other than active sets `is_active=False`.
-- **StudentProfile** — `user` (1:1), `matric_number` (unique), `program`, `level` (100–600),
+- **StudentProfile** — `user` (1:1), `matric_number` (unique), `program`, `level` (100–500),
   plus `phone` and `address`, which are the only profile fields a student may edit.
   Department and faculty are derived through `program`, never stored twice.
 - **StaffProfile** — `user` (1:1), `staff_id` (unique), `department`. Used by lecturers and
@@ -104,7 +104,7 @@ erDiagram
   `(course, semester)` allocation, `(course, semester)` result sheet, `(session, term)`.
 - At most one `Semester` with `is_current=True`.
 - Check constraints: `ca_score ≤ 30`, `exam_score ≤ 70` (non-negative via unsigned columns),
-  `1 ≤ units ≤ 6`, `1 ≤ duration_years ≤ 6`, session `end_date > start_date`.
+  `1 ≤ units ≤ 6`, `1 ≤ duration_years ≤ 5` (so the highest level is 500), session `end_date > start_date`.
 - Foreign keys to academic records use `PROTECT`, so a course, semester or student with
   registrations or results can't be deleted out from under them.
 
