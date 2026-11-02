@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
+from apps.academics.models import Level
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -43,10 +45,46 @@ class User(AbstractUser):
     objects = UserManager()
 
     def save(self, *args, **kwargs):
-        # Django's auth backend rejects inactive users on login and on every request,
-        # so tying is_active to status makes a suspension take effect immediately.
         self.is_active = self.status == self.Status.ACTIVE
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.email
+
+
+class StudentProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile")
+    matric_number = models.CharField(max_length=30, unique=True)
+    program = models.ForeignKey(
+        "academics.Program", on_delete=models.PROTECT, related_name="students"
+    )
+    level = models.PositiveSmallIntegerField(choices=Level.choices)
+    phone = models.CharField(max_length=20, blank=True)
+    address = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["matric_number"]
+
+    def __str__(self):
+        return self.matric_number
+
+    @property
+    def department(self):
+        return self.program.department
+
+
+class StaffProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="staff_profile")
+    staff_id = models.CharField(max_length=30, unique=True)
+    department = models.ForeignKey(
+        "academics.Department", on_delete=models.PROTECT, related_name="staff"
+    )
+    title = models.CharField(max_length=30, blank=True, help_text="e.g. Dr., Prof.")
+    phone = models.CharField(max_length=20, blank=True)
+
+    class Meta:
+        ordering = ["staff_id"]
+
+    def __str__(self):
+        name = self.user.get_full_name()
+        return f"{self.title} {name}".strip()

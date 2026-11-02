@@ -78,7 +78,8 @@ erDiagram
 
 - **User** — custom user (email login). `role`: `STUDENT | LECTURER | DEPT_ADMIN | SUPER_ADMIN`.
   `status`: `ACTIVE | SUSPENDED | DEACTIVATED`; anything other than active sets `is_active=False`.
-- **StudentProfile** — `user` (1:1), `matric_number` (unique), `program`, `level` (100–600).
+- **StudentProfile** — `user` (1:1), `matric_number` (unique), `program`, `level` (100–600),
+  plus `phone` and `address`, which are the only profile fields a student may edit.
   Department and faculty are derived through `program`, never stored twice.
 - **StaffProfile** — `user` (1:1), `staff_id` (unique), `department`. Used by lecturers and
   department admins; the department here is what scopes everything they can see.
@@ -92,8 +93,9 @@ erDiagram
 - **ResultSheet** — one per `(course, semester)`; carries the workflow `status`, submitter,
   reviewer, timestamps, and review comment.
 - **Score** — `sheet`, `registration` (1:1), `ca_score`, `exam_score`, plus computed `total`,
-  `grade`, `grade_point`. Scores can only exist for registered students.
-- **AuditLog** — `actor`, `action`, `target_type`, `target_id`, `details` (JSON), `created_at`.
+  `grade`, `grade_point`. Scores can only exist for registered students. Scores are whole numbers;
+  CA/exam may be blank while a sheet is still a draft.
+- **AuditLog** — `actor`, `action`, `target_type`, `target_id`, `summary`, `details` (JSON), `created_at`.
   Append-only; no update/delete endpoints.
 
 ### Constraints enforced by the database (not just the code)
@@ -101,7 +103,10 @@ erDiagram
 - Unique: matric number, staff ID, course code, `(student, course, semester)`,
   `(course, semester)` allocation, `(course, semester)` result sheet, `(session, term)`.
 - At most one `Semester` with `is_current=True`.
-- Check constraints: `0 ≤ ca_score ≤ CA_MAX`, `0 ≤ exam_score ≤ EXAM_MAX`, `units > 0`.
+- Check constraints: `ca_score ≤ 30`, `exam_score ≤ 70` (non-negative via unsigned columns),
+  `1 ≤ units ≤ 6`, `1 ≤ duration_years ≤ 6`, session `end_date > start_date`.
+- Foreign keys to academic records use `PROTECT`, so a course, semester or student with
+  registrations or results can't be deleted out from under them.
 
 ## 5. Permission logic
 
@@ -164,7 +169,8 @@ Configured in `settings.GRADING` (documented here and in the README):
 | 40–44  | E     | 1     |
 | 0–39   | F     | 0     |
 
-CA is out of 30, exam out of 70.
+CA is out of 30, exam out of 70 (`CA_MAX_SCORE`, `EXAM_MAX_SCORE`). The grade bands live in
+`GRADING_SCALE`; the lookup and GPA maths are in `apps/results/grading.py`.
 `GPA = Σ(units × grade_point) / Σ(units)` over a semester's approved scores;
 CGPA is the same sum across all approved scores. GPA is computed on read rather than stored,
 so it can never drift out of sync with the underlying scores.
