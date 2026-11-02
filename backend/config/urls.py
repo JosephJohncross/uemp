@@ -6,6 +6,7 @@ from rest_framework.routers import DefaultRouter
 from apps.academics import views as academics
 from apps.accounts import views as accounts
 from apps.core.views import health
+from apps.registration import views as registration
 
 router = DefaultRouter()
 router.register("students", accounts.StudentViewSet, basename="student")
@@ -18,6 +19,10 @@ router.register("sessions", academics.AcademicSessionViewSet, basename="session"
 router.register("semesters", academics.SemesterViewSet, basename="semester")
 router.register("courses", academics.CourseViewSet, basename="course")
 router.register("allocations", academics.CourseAllocationViewSet, basename="allocation")
+router.register("registrations", registration.CourseRegistrationViewSet, basename="registration")
+router.register(
+    "student/registration", registration.StudentRegistrationViewSet, basename="student-registration"
+)
 
 auth_urls = [
     path("csrf/", accounts.CsrfView.as_view()),
