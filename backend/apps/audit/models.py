@@ -17,7 +17,7 @@ class AuditLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-created_at", "-id"]
 
     def __str__(self):
         return f"{self.created_at:%Y-%m-%d %H:%M} {self.action} {self.target_type}#{self.target_id}"
