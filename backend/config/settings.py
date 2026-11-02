@@ -104,8 +104,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 25,
+    "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardPagination",
+    "EXCEPTION_HANDLER": "apps.core.exceptions.api_exception_handler",
     "DEFAULT_THROTTLE_RATES": {
         "login": "10/min",
     },
@@ -125,6 +125,7 @@ if not DEBUG:
 
 CA_MAX_SCORE = 30
 EXAM_MAX_SCORE = 70
+MAX_UNITS_PER_SEMESTER = 24
 
 # (minimum total score, grade, grade point), highest band first.
 GRADING_SCALE = [
