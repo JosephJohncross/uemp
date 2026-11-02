@@ -112,21 +112,43 @@ erDiagram
 
 Three layers, each answering a different question:
 
-1. **Is this role allowed to call this endpoint?** — DRF permission classes
-   (`IsStudent`, `IsLecturer`, `IsDeptAdmin`, `IsSuperAdmin`) on each view.
+1. **Is this role allowed to call this endpoint?** — DRF permission classes in
+   `apps/core/permissions.py` (`IsStudent`, `IsLecturer`, `IsDeptAdmin`, `IsSuperAdmin`, plus
+   `IsAdmin`, `IsStaff`, and `IsReadOnly` for reference data any signed-in user may read).
 2. **Which records can this user see?** — every view's `get_queryset()` is filtered by scope:
    - Student → own records only
-   - Lecturer → courses allocated to them in the given semester, and those courses' students
+   - Lecturer → result sheets and allocations for courses allocated to them (the class list is
+     part of the result sheet)
    - Dept admin → records whose department is their `StaffProfile.department`
    - Super admin → everything
 
    Out-of-scope objects return **404, not 403**, so the API doesn't reveal what exists.
 3. **Is this action valid right now?** — service functions check business rules
    (eligibility, workflow state, "can't approve your own submission") and raise a
-   validation error with a clear message.
+   validation error with a clear message. Writes into a department also call
+   `ensure_department_access()`, so a department admin can't create a record in another
+   department even by sending its ID.
 
 The React app reads `role` from `/api/auth/me` and hides routes the user can't use,
 but that is a convenience; removing it would not open any data.
+
+### Endpoints and who can call them
+
+| Endpoint | Student | Lecturer | Dept admin | Super admin |
+|---|---|---|---|---|
+| `POST /api/auth/login/`, `logout/`, `GET/PATCH me/` | yes | yes | yes | yes |
+| `/api/student/registration/` (`available/`), `/api/student/results/` | own | – | – | – |
+| `/api/faculties/`, `departments/`, `programs/`, `sessions/`, `semesters/` | read | read | read; write programs in own dept | read/write |
+| `/api/courses/` | – | read own dept | read/write own dept | read/write |
+| `/api/allocations/` | – | own | read/write own dept | read/write |
+| `/api/result-sheets/` + `scores`, `submit` | – | own allocated courses | – | – |
+| `/api/result-sheets/` + `approve`, `reject`, `reopen` | – | – | own dept | – (read only) |
+| `/api/students/`, `staff/`, `registrations/`, `reports/*` | – | – | own dept | all |
+| `/api/users/` (+ `status`, `role`), `/api/audit-logs/` | – | – | – | yes |
+
+The super admin can read every result sheet but deliberately can't approve: the brief makes
+approval a departmental responsibility, and keeping it there means every approval has a
+reviewer from the owning department.
 
 ## 6. Key workflows
 
@@ -135,30 +157,41 @@ but that is a convenience; removing it would not open any data.
 the request unless: the current semester exists and `registration_open` is true; each course's
 `programs` includes the student's program; `course.level == student.level`;
 `course.term == semester.term`; the student isn't already registered (also guaranteed by the
-unique constraint). Optional: a maximum-units-per-semester setting.
+unique constraint); and the new total stays within `MAX_UNITS_PER_SEMESTER` (24). If two requests
+race past the checks, the unique constraint still stops the duplicate and the error is turned into
+a normal validation message.
 
 ### Result lifecycle
 
 ```
 DRAFT ──submit──▶ SUBMITTED ──approve──▶ APPROVED
-  ▲                   │
-  └──── return ───────┘   (dept admin, comment required → status RETURNED, editable again)
+                    │    ▲                  │
+              reject│    │submit            │reopen
+                    ▼    │                  │
+                   RETURNED ◀───────────────┘
 ```
 
+A sheet is created as soon as a course is allocated, so it always exists for the lecturer to open.
+
 - Lecturer edits scores only while the sheet is `DRAFT` or `RETURNED`.
-- Submit requires a score for every registered student.
-- Only a dept admin of the course's department can approve or return; the service also
-  rejects the action if `reviewer == sheet.submitted_by`.
-- Reopening an approved sheet is a dept-admin action that moves it back to `RETURNED`
-  and is audited ("authorized reopening").
+- Submit requires both scores for every registered student.
+- Only a dept admin of the course's department can approve, reject or reopen; the service also
+  rejects the action if `reviewer == sheet.submitted_by`. Reject and reopen need a comment,
+  which the lecturer sees as feedback.
+- Reopening an approved sheet is the "authorized reopening" from the brief: it moves the sheet
+  back to `RETURNED`, which hides it from students again until it is re-approved.
+- Every score save records each changed student's before and after values, so edits made after
+  a rejection or reopening are traceable.
+- Workflow actions lock the sheet row (`select_for_update`) so a save and a submit can't interleave.
 - Students only ever see scores whose sheet is `APPROVED` — enforced in the queryset.
 
-All transitions go through one function with an explicit allowed-transitions table, and each
-one writes an `AuditLog` entry.
+All transitions go through `_transition()` in `apps/results/services.py`, which checks an explicit
+`TRANSITIONS` table, and each one writes an `AuditLog` entry. The sheet detail endpoint returns
+that history alongside the scores.
 
 ## 7. Grading and GPA
 
-Configured in `settings.GRADING` (documented here and in the README):
+Configured in `settings.GRADING_SCALE` (documented here and in the README):
 
 | Score  | Grade | Point |
 |--------|-------|-------|
@@ -186,6 +219,11 @@ so it can never drift out of sync with the underlying scores.
 - All input validated by serializers; score ranges and uniqueness also enforced in the DB.
 - Every result submission, approval, return, reopen, role change, and account status change
   is written to the audit log.
+- Login is CSRF-protected explicitly (DRF only enforces CSRF for already-authenticated
+  sessions), which stops another site signing a visitor into an account of its choosing.
+- A suspended user who enters the right password is told the account is suspended; a wrong
+  password always gets the same generic message, so the endpoint doesn't reveal which emails exist.
+- Deleting a record that others depend on returns `409 Conflict` instead of a server error.
 - Secrets and `DEBUG` come from environment variables, never committed.
 
 ## 9. Deployment
@@ -224,6 +262,11 @@ browser ──▶ https://uemp.vercel.app            (React build, static)
 | D11 | Vercel rewrites `/api/*` to Render, so the browser sees one origin | Session cookies stay first-party (`SameSite=Lax`) and no CORS config is needed. Mirrors the Vite proxy used in development, so dev and prod behave the same. | Cross-site cookies with `SameSite=None` + CORS (blocked by Safari and third-party-cookie restrictions); switching to JWT |
 | D12 | Tailwind + shadcn/ui, with beUI for a few animated pieces | shadcn/ui provides the components an admin portal needs (data table, forms, dialog, sidebar) as code we own. beUI adds polish through the same CLI but has no tables or forms, so it can't be the base. | Mantine; beUI alone |
 | D13 | Django admin site mounted only when `DEBUG` is on | Handy for inspecting data locally, but production access goes through the API so every action passes the same permission checks and audit log. | Exposing /admin/ in production |
+| D14 | Plain CRUD (faculties, courses, programs) goes straight through serializers; anything with rules goes through `services.py` | A service per simple create would be boilerplate. Scope checks and audit entries still happen in the viewset for these. | A service function for every model |
+| D15 | Student self-service lives under `/api/student/...`; staff use resource endpoints like `/api/registrations/` | The student's own data needs no IDs in the URL, which removes a whole class of "view someone else's record" mistakes. | One shared endpoint with role checks inside |
+| D16 | Demo data is created through the same services as real requests | The seed can't produce states the app itself couldn't reach, and every seeded sheet has a real audit trail. | Writing rows directly |
+| D17 | Students print registration slips and result statements from the browser (print stylesheet) | Meets "download or print" with no PDF library or server rendering. | Server-side PDF generation |
+| D18 | Filtering with plain query parameters in `get_queryset()` | A handful of filters per endpoint; not worth a dependency. | django-filter |
 
 ## 11. Build plan
 
