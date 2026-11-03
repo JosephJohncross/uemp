@@ -215,7 +215,9 @@ so it can never drift out of sync with the underlying scores.
   all unsafe methods.
 - HTTPS everywhere in production: both platforms redirect HTTP at the edge, and Django sends
   HSTS (one year). `manage.py check --deploy` passes.
-- Django password hashing (PBKDF2) and password validators.
+- Django password hashing (PBKDF2) and password validators. Users replace the initial password an
+  admin gave them via `POST /api/auth/password/`, which needs the current password and keeps the
+  session signed in.
 - Login endpoint throttled (DRF `ScopedRateThrottle`).
 - Suspended/deactivated users have `is_active=False`; Django refuses both new logins and
   existing sessions for them, so suspension takes effect immediately.
@@ -261,14 +263,14 @@ frontend/src/
 
 ## 10. Testing
 
-`cd backend && pytest` runs 162 tests in about 8 seconds against a throwaway database. The
+`cd backend && pytest` runs 166 tests in about 8 seconds against a throwaway database. The
 fixtures in `backend/conftest.py` build a small two-department university through the same
 services the API uses.
 
 | File | What it proves |
 |---|---|
 | `core/tests/test_access_matrix.py` | Every role against every endpoint: exactly the roles in the permissions table get through. |
-| `accounts/tests/test_auth.py` | CSRF on login, generic failure messages, suspension ends live sessions, students can only edit contact details. |
+| `accounts/tests/test_auth.py` | CSRF on login, generic failure messages, suspension ends live sessions, password change, students can only edit contact details. |
 | `accounts/tests/test_user_management.py` | Department scoping (404 across departments, 403 for cross-department writes), validation, status and role changes audited. |
 | `academics/tests/test_academics.py` | Allocation rules, the single current semester, refusing to delete records in use. |
 | `registration/tests/test_registration.py` | Every business rule for registration: program, level and term eligibility, duplicates, closed registration, unit limit, all-or-nothing. |

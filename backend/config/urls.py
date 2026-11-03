@@ -34,6 +34,7 @@ auth_urls = [
     path("login/", accounts.LoginView.as_view()),
     path("logout/", accounts.LogoutView.as_view()),
     path("me/", accounts.MeView.as_view()),
+    path("password/", accounts.PasswordChangeView.as_view()),
 ]
 
 urlpatterns = [

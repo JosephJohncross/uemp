@@ -64,5 +64,6 @@ export const NAVIGATION: Record<Role, NavItem[]> = {
     { label: 'Result approvals', to: '/admin/results', icon: ClipboardCheck },
     { label: 'Reports', to: '/admin/reports', icon: FileBarChart },
     { label: 'Audit log', to: '/admin/audit', icon: History },
+    { label: 'Profile', to: '/admin/profile', icon: UserRound },
   ],
 }

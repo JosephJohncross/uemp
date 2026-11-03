@@ -58,6 +58,7 @@ def test_role_access(world, api, endpoint, role):
         ("lecturer", "post", "/api/courses/", {"code": "CSC999"}),
         ("student", "post", "/api/allocations/", {}),
         ("lecturer", "post", "/api/allocations/", {}),
+        ("anonymous", "post", "/api/auth/password/", {}),
     ],
 )
 def test_writes_refused_for_roles_without_authority(world, api, role, method, endpoint, payload):

@@ -92,6 +92,7 @@ export default function App() {
           <Route path="results/:sheetId" element={<ResultSheetPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="audit" element={<AuditLogPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Route>
 

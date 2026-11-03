@@ -91,7 +91,7 @@ Vite forwards `/api` to the backend, so open the app at http://localhost:5173.
 ### Tests and checks
 
 ```bash
-cd backend && pytest                       # 162 tests: permissions, workflows, grading
+cd backend && pytest                       # 166 tests: permissions, workflows, grading
 cd backend && ruff check . && ruff format --check .
 cd frontend && npm run lint && npm run build
 ```

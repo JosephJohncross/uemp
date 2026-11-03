@@ -1,4 +1,4 @@
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
@@ -18,6 +18,7 @@ from .serializers import (
     LoginSerializer,
     MeSerializer,
     OwnProfileUpdateSerializer,
+    PasswordChangeSerializer,
     StaffSerializer,
     StudentSerializer,
     UserRoleSerializer,
@@ -69,6 +70,18 @@ class MeView(APIView):
         services.update_own_profile(request.user, **serializer.validated_data)
         user = User.objects.get(pk=request.user.pk)
         return Response(MeSerializer(user).data)
+
+
+class PasswordChangeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = PasswordChangeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = services.change_password(request.user, **serializer.validated_data)
+        # Changing the password rotates the session hash; keep this session signed in.
+        update_session_auth_hash(request, user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 def name_search(search: str, prefix: str = "") -> Q:

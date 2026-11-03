@@ -97,3 +97,38 @@ def test_student_can_update_only_contact_details(world, api):
     assert world.student.address == "Hall 3"
     assert world.student.matric_number == "CSC/25/001"
     assert world.student.level == 100
+
+
+def change_password(client, current, new):
+    return client.post(
+        "/api/auth/password/",
+        {"current_password": current, "new_password": new},
+        format="json",
+    )
+
+
+def test_password_change_keeps_session_and_replaces_old_password(world, api):
+    client = api(world.student.user)
+
+    response = change_password(client, PASSWORD, "A-much-better-one-2026")
+
+    assert response.status_code == 204
+    assert client.get("/api/auth/me/").status_code == 200
+    world.student.user.refresh_from_db()
+    assert world.student.user.check_password("A-much-better-one-2026")
+    assert not world.student.user.check_password(PASSWORD)
+    assert AuditLog.objects.filter(action="auth.password_changed").exists()
+
+
+@pytest.mark.parametrize(
+    ("current", "new", "field"),
+    [
+        ("wrong-password", "A-much-better-one-2026", "current_password"),
+        (PASSWORD, "123", "new_password"),
+    ],
+)
+def test_password_change_validation(world, api, current, new, field):
+    response = change_password(api(world.student.user), current, new)
+
+    assert response.status_code == 400
+    assert field in response.data

@@ -185,3 +185,16 @@ def update_own_profile(user: User, *, phone: str | None = None, address: str | N
         profile.address = address
     profile.save()
     return user
+
+
+def change_password(user: User, *, current_password: str, new_password: str) -> User:
+    if not user.check_password(current_password):
+        raise ValidationError({"current_password": ["Your current password is incorrect."]})
+    try:
+        validate_password(new_password, user)
+    except DjangoValidationError as exc:
+        raise ValidationError({"new_password": list(exc.messages)}) from exc
+    user.set_password(new_password)
+    user.save()
+    record(user, "auth.password_changed", user, f"{user.email} changed their password")
+    return user

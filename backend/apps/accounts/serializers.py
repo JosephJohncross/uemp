@@ -66,6 +66,11 @@ class OwnProfileUpdateSerializer(serializers.Serializer):
     address = serializers.CharField(max_length=255, required=False, allow_blank=True)
 
 
+class PasswordChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(trim_whitespace=False)
+    new_password = serializers.CharField(trim_whitespace=False)
+
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(trim_whitespace=False)

@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { useCurrentUser } from '@/auth/useAuth'
+import { ChangePasswordCard } from '@/pages/ChangePasswordCard'
 import { PageHeader } from '@/components/PageHeader'
 import { StatusBadge } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
@@ -70,7 +71,7 @@ export default function ProfilePage() {
               Account <StatusBadge status={user.status} />
             </CardTitle>
             <CardDescription>
-              These details are managed by the university. Contact your department to change them.
+              These details are kept in the university's records and changed by an administrator.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -122,6 +123,7 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         )}
+        <ChangePasswordCard />
       </div>
     </>
   )
