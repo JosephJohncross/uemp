@@ -28,9 +28,10 @@ SQLite (default) / PostgreSQL (via DATABASE_URL)
 | Database   | SQLite by default, PostgreSQL supported   | Evaluators can run it with zero setup. Same ORM code runs on Postgres by setting `DATABASE_URL`. |
 | Auth       | Django sessions (HttpOnly cookie) + CSRF  | See decision D2. |
 | Frontend   | React + TypeScript + Vite                 | Fast dev server; types catch API-shape mistakes early. |
-| Styling    | Tailwind CSS 4 + shadcn/ui, with a few beUI components | shadcn/ui covers the basics (table, form, dialog, sidebar); beUI adds animated touches through the same CLI. See D12. |
+| Styling    | Tailwind CSS 4 + shadcn/ui, plus beUI's animated number | shadcn/ui covers the basics (table, form, dialog, sidebar); beUI adds the count-up on dashboard figures. See D12. |
 | Hosting    | Vercel (frontend), Render (backend + Postgres) | Free tiers, deploy from git, and one `render.yaml` creates both the API and the database. See D11. |
 | Data fetch | TanStack Query + a small fetch wrapper    | Caching, loading/error states, and refetch-after-mutation without writing a store. |
+| Lint       | ruff (Python), oxlint + Prettier (TypeScript) | Fast, zero-config defaults; generated `ui/` and `motion/` folders are excluded. |
 | Routing    | React Router                              | Role-based route guards and nested dashboard layouts. |
 | Tests      | pytest + pytest-django                    | Focused on permissions and workflow rules. |
 
@@ -226,7 +227,37 @@ so it can never drift out of sync with the underlying scores.
 - Deleting a record that others depend on returns `409 Conflict` instead of a server error.
 - Secrets and `DEBUG` come from environment variables, never committed.
 
-## 8a. Testing
+## 9. Frontend
+
+```
+frontend/src/
+  lib/api.ts         fetch wrapper: same-origin cookies, CSRF header on writes, DRF errors → ApiError
+  lib/queries.ts     useApiQuery / useApiMutation (TanStack Query) with cache invalidation by path
+  auth/              AuthProvider (who is signed in), RequireRole (route guard)
+  layouts/           AppLayout: sidebar per role, mobile drawer, error boundary, lazy-page Suspense
+  pages/student|lecturer|results|manage|admin
+  components/        DataTable, FormDialog, ConfirmDialog, StatCard, StatusBadge, …
+```
+
+- **One page component per screen; shared screens for shared jobs.** Department admins and the
+  super admin use the same `pages/manage/*` screens. The API already scopes the data, so the
+  page doesn't branch on department; it only hides controls a role can't use. The result sheet
+  page is also shared: lecturers get score inputs and *Submit*, department admins get
+  *Approve / Return / Reopen*.
+- **Server state lives in TanStack Query, not a global store.** After a write, the mutation
+  invalidates the paths it affects (e.g. approving a sheet refreshes `/result-sheets/`,
+  `/allocations/` and `/reports/`).
+- **Validation stays on the server.** `FormDialog` maps the API's 400 response onto the matching
+  fields, so rules such as "duplicate matric number" or "level above the program's maximum" live
+  in one place.
+- **Printing** (registration slip, statement of results) uses a print stylesheet and a
+  letterhead that only shows on paper.
+- **Pages are lazy-loaded** per route, keeping the main bundle around 105 kB gzipped; a student
+  never downloads the admin screens.
+- **Signing out reloads the page**, so no cached response from the previous user can survive into
+  the next session on a shared computer.
+
+## 10. Testing
 
 `cd backend && pytest` runs 162 tests in about 8 seconds against a throwaway database. The
 fixtures in `backend/conftest.py` build a small two-department university through the same
@@ -245,7 +276,7 @@ services the API uses.
 To check the tests catch real bugs, three rules were broken on purpose: allowing self-approval,
 dropping the level check, and removing department scoping. Each broke its tests.
 
-## 9. Deployment
+## 11. Deployment
 
 ```
 browser ──▶ https://uemp.vercel.app            (React build, static)
@@ -264,7 +295,7 @@ browser ──▶ https://uemp.vercel.app            (React build, static)
 - Render's free tier sleeps after 15 minutes idle, so the first request can take up to a minute.
   Open the backend's `/api/health/` before a demo.
 
-## 10. Decisions
+## 12. Decisions
 
 | #  | Decision | Reason | Rejected |
 |----|----------|--------|----------|
@@ -279,15 +310,17 @@ browser ──▶ https://uemp.vercel.app            (React build, static)
 | D9 | SQLite default, Postgres-ready | Zero-setup evaluation; nothing in the code is SQLite-specific. | Requiring Postgres/Docker to run |
 | D10 | 404 for out-of-scope objects | Doesn't confirm existence of records the user can't access. | 403 |
 | D11 | Vercel rewrites `/api/*` to Render, so the browser sees one origin | Session cookies stay first-party (`SameSite=Lax`) and no CORS config is needed. Mirrors the Vite proxy used in development, so dev and prod behave the same. | Cross-site cookies with `SameSite=None` + CORS (blocked by Safari and third-party-cookie restrictions); switching to JWT |
-| D12 | Tailwind + shadcn/ui, with beUI for a few animated pieces | shadcn/ui provides the components an admin portal needs (data table, forms, dialog, sidebar) as code we own. beUI adds polish through the same CLI but has no tables or forms, so it can't be the base. | Mantine; beUI alone |
+| D12 | Tailwind + shadcn/ui, with beUI only where it fits | shadcn/ui provides what an admin portal needs (table, forms, dialog, sidebar) as code we own. beUI has no tables or forms, so it can't be the base; its animated number is used on dashboards. Its timeline is a draggable showcase carousel, wrong for an audit history, so it wasn't used. | Mantine; beUI alone |
 | D13 | Django admin site mounted only when `DEBUG` is on | Handy for inspecting data locally, but production access goes through the API so every action passes the same permission checks and audit log. | Exposing /admin/ in production |
 | D14 | Plain CRUD (faculties, courses, programs) goes straight through serializers; anything with rules goes through `services.py` | A service per simple create would be boilerplate. Scope checks and audit entries still happen in the viewset for these. | A service function for every model |
 | D15 | Student self-service lives under `/api/student/...`; staff use resource endpoints like `/api/registrations/` | The student's own data needs no IDs in the URL, which removes a whole class of "view someone else's record" mistakes. | One shared endpoint with role checks inside |
 | D16 | Demo data is created through the same services as real requests | The seed can't produce states the app itself couldn't reach, and every seeded sheet has a real audit trail. | Writing rows directly |
 | D17 | Students print registration slips and result statements from the browser (print stylesheet) | Meets "download or print" with no PDF library or server rendering. | Server-side PDF generation |
 | D18 | Filtering with plain query parameters in `get_queryset()` | A handful of filters per endpoint; not worth a dependency. | django-filter |
+| D19 | Admin create/edit forms share one config-driven `FormDialog` | Over a dozen near-identical CRUD forms; one component keeps error display and loading states consistent. Pages with real interaction (registration, score entry) are written by hand. | A form library (react-hook-form + zod) duplicating server validation |
+| D20 | Sign-out does a full page load | The simplest way to guarantee no cached data from the previous user survives. | Clearing the query cache by hand (tried first; left the signed-in state stale) |
 
-## 11. Build plan
+## 13. Build plan
 
 | Phase | Work | Est. |
 |-------|------|------|
