@@ -38,9 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await api('/auth/logout/', { method: 'POST' })
-    queryClient.clear()
-    queryClient.setQueryData(ME_KEY, null)
-  }, [queryClient])
+    // A full page load guarantees nothing cached for the previous user survives.
+    window.location.replace('/login')
+  }, [])
 
   const value = useMemo(
     () => ({ user, isLoading, login, logout }),

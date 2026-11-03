@@ -1,6 +1,6 @@
 import { GraduationCap, LogOut, Menu } from 'lucide-react'
 import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router'
+import { NavLink, Outlet } from 'react-router'
 
 import { useCurrentUser, useAuth } from '@/auth/useAuth'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -59,13 +59,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 function UserMenu() {
   const user = useCurrentUser()
   const { logout } = useAuth()
-  const navigate = useNavigate()
   const initials = `${user.first_name[0] ?? ''}${user.last_name[0] ?? ''}`
-
-  async function signOut() {
-    await logout()
-    navigate('/login', { replace: true })
-  }
 
   return (
     <DropdownMenu>
@@ -86,7 +80,7 @@ function UserMenu() {
           <span className="block text-xs text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={signOut}>
+        <DropdownMenuItem onClick={logout}>
           <LogOut />
           Sign out
         </DropdownMenuItem>

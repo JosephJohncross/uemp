@@ -5,7 +5,10 @@ import { useAuth } from '@/auth/useAuth'
 import { AppLayout } from '@/layouts/AppLayout'
 import { ROLE_HOME } from '@/lib/roles'
 import LoginPage from '@/pages/LoginPage'
+import LecturerDashboard from '@/pages/lecturer/LecturerDashboard'
 import ProfilePage from '@/pages/ProfilePage'
+import ResultSheetListPage from '@/pages/results/ResultSheetListPage'
+import ResultSheetPage from '@/pages/results/ResultSheetPage'
 import CourseRegistrationPage from '@/pages/student/CourseRegistrationPage'
 import ResultsPage from '@/pages/student/ResultsPage'
 import StudentDashboard from '@/pages/student/StudentDashboard'
@@ -28,6 +31,15 @@ export default function App() {
           <Route index element={<StudentDashboard />} />
           <Route path="registration" element={<CourseRegistrationPage />} />
           <Route path="results" element={<ResultsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+        </Route>
+      </Route>
+
+      <Route element={<RequireRole role="LECTURER" />}>
+        <Route path="/lecturer" element={<AppLayout />}>
+          <Route index element={<LecturerDashboard />} />
+          <Route path="results" element={<ResultSheetListPage />} />
+          <Route path="results/:sheetId" element={<ResultSheetPage />} />
           <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Route>
