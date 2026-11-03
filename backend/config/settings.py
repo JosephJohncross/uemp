@@ -123,9 +123,11 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_HSTS_SECONDS = 60 * 60 * 24 * 365
-    # Render and Vercel already redirect HTTP to HTTPS at the edge; redirecting again here
+    # W008: Render and Vercel already redirect HTTP to HTTPS at the edge; redirecting again here
     # would also bounce Render's plain-HTTP health check.
-    SILENCED_SYSTEM_CHECKS = ["security.W008"]
+    # W005/W021: we don't own the parent domains (onrender.com, vercel.app), so HSTS must not
+    # claim their subdomains or request preloading.
+    SILENCED_SYSTEM_CHECKS = ["security.W008", "security.W005", "security.W021"]
 
 CA_MAX_SCORE = 30
 EXAM_MAX_SCORE = 70
