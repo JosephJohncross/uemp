@@ -22,11 +22,13 @@ interface MutationOptions {
   /** API path prefixes whose cached queries should refetch afterwards. */
   invalidates?: string[]
   successMessage?: string
+  /** The caller renders field errors inline (a form), so only toast errors without fields. */
+  showsFieldErrors?: boolean
 }
 
 export function useApiMutation<TVariables = void, TResult = unknown>(
   request: (variables: TVariables) => Promise<TResult>,
-  { invalidates = [], successMessage }: MutationOptions = {},
+  { invalidates = [], successMessage, showsFieldErrors = false }: MutationOptions = {},
 ) {
   const queryClient = useQueryClient()
   return useMutation<TResult, ApiError, TVariables>({
@@ -37,7 +39,10 @@ export function useApiMutation<TVariables = void, TResult = unknown>(
       })
       if (successMessage) toast.success(successMessage)
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error) => {
+      const hasFieldErrors = Object.keys(error.fieldErrors ?? {}).length > 0
+      if (!(showsFieldErrors && hasFieldErrors)) toast.error(error.message)
+    },
   })
 }
 

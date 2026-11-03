@@ -26,7 +26,8 @@ export type FormValues = Record<string, string>
 export interface FieldConfig {
   name: string
   label: string
-  type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'select'
+  /** A checklist stores its selected values as a comma-separated string. */
+  type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'select' | 'checklist'
   options?: { value: string | number; label: string }[]
   required?: boolean
   placeholder?: string
@@ -154,6 +155,33 @@ interface FieldInputProps {
 }
 
 function FieldInput({ field, value, onChange, invalid }: FieldInputProps) {
+  if (field.type === 'checklist') {
+    const selected = new Set(value ? value.split(',') : [])
+    const toggle = (option: string) => {
+      if (selected.has(option)) selected.delete(option)
+      else selected.add(option)
+      onChange([...selected].join(','))
+    }
+    return (
+      <div
+        id={field.name}
+        className="grid max-h-40 gap-2 overflow-y-auto rounded-md border p-3 sm:grid-cols-2"
+        aria-invalid={invalid}
+      >
+        {field.options?.map((option) => (
+          <label key={option.value} className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 accent-primary"
+              checked={selected.has(String(option.value))}
+              onChange={() => toggle(String(option.value))}
+            />
+            {option.label}
+          </label>
+        ))}
+      </div>
+    )
+  }
   if (field.type === 'select') {
     return (
       <Select value={value} onValueChange={onChange}>

@@ -5,6 +5,14 @@ import { useAuth } from '@/auth/useAuth'
 import { AppLayout } from '@/layouts/AppLayout'
 import { ROLE_HOME } from '@/lib/roles'
 import LoginPage from '@/pages/LoginPage'
+import AllocationsPage from '@/pages/manage/AllocationsPage'
+import CoursesPage from '@/pages/manage/CoursesPage'
+import DepartmentDashboard from '@/pages/manage/DepartmentDashboard'
+import ProgramsPage from '@/pages/manage/ProgramsPage'
+import RegistrationsPage from '@/pages/manage/RegistrationsPage'
+import ReportsPage from '@/pages/manage/ReportsPage'
+import StaffPage from '@/pages/manage/StaffPage'
+import StudentsPage from '@/pages/manage/StudentsPage'
 import LecturerDashboard from '@/pages/lecturer/LecturerDashboard'
 import ProfilePage from '@/pages/ProfilePage'
 import ResultSheetListPage from '@/pages/results/ResultSheetListPage'
@@ -40,6 +48,22 @@ export default function App() {
           <Route index element={<LecturerDashboard />} />
           <Route path="results" element={<ResultSheetListPage />} />
           <Route path="results/:sheetId" element={<ResultSheetPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+        </Route>
+      </Route>
+
+      <Route element={<RequireRole role="DEPT_ADMIN" />}>
+        <Route path="/department" element={<AppLayout />}>
+          <Route index element={<DepartmentDashboard />} />
+          <Route path="results" element={<ResultSheetListPage />} />
+          <Route path="results/:sheetId" element={<ResultSheetPage />} />
+          <Route path="students" element={<StudentsPage />} />
+          <Route path="staff" element={<StaffPage />} />
+          <Route path="programs" element={<ProgramsPage />} />
+          <Route path="courses" element={<CoursesPage />} />
+          <Route path="allocations" element={<AllocationsPage />} />
+          <Route path="registrations" element={<RegistrationsPage />} />
+          <Route path="reports" element={<ReportsPage />} />
           <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Route>
