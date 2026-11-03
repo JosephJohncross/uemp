@@ -41,8 +41,10 @@ urlpatterns = [
     path("api/health/", health),
     path("api/auth/", include(auth_urls)),
     path("api/student/results/", results.StudentResultsView.as_view()),
+    path("api/student/results/statement/", results.StudentResultStatementView.as_view()),
     path("api/reports/overview/", reports.OverviewReportView.as_view()),
     path("api/reports/courses/", reports.CourseReportView.as_view()),
+    path("api/reports/courses/export/", reports.CourseReportExportView.as_view()),
     path("api/", include(router.urls)),
 ]
 

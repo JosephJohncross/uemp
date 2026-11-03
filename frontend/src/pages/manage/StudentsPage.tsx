@@ -1,8 +1,9 @@
-import { Plus, Printer } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { useCurrentUser } from '@/auth/useAuth'
 import { DataTable, Pager } from '@/components/DataTable'
+import { DownloadButton } from '@/components/DownloadButton'
 import { FilterSelect } from '@/components/FilterSelect'
 import { FormDialog, type FieldConfig, type FormValues } from '@/components/FormDialog'
 import { PageHeader } from '@/components/PageHeader'
@@ -117,10 +118,11 @@ export default function StudentsPage() {
         }
         actions={
           <>
-            <Button variant="outline" onClick={() => window.print()}>
-              <Printer />
-              Print list
-            </Button>
+            <DownloadButton
+              path="/students/export/"
+              params={{ search, department, program, level }}
+              label="Download list"
+            />
             <Button onClick={dialog.openCreate}>
               <Plus />
               Register student

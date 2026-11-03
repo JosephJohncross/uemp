@@ -5,7 +5,8 @@ from apps.academics.models import Semester
 from apps.core.permissions import IsAdmin, Role, staff_department_id
 from apps.registration.views import semester_from_params
 
-from . import services
+from . import documents, services
+from .pdf import pdf_response
 
 
 def department_scope(user) -> int | None:
@@ -38,3 +39,17 @@ class CourseReportView(APIView):
                 "courses": services.course_report(semester, department_scope(request.user)),
             }
         )
+
+
+class CourseReportExportView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        semester = semester_from_params(request)
+        department_id = department_scope(request.user)
+        scope = request.user.staff_profile.department.name if department_id else "All departments"
+        content = documents.course_report(semester, department_id, scope)
+        filename = (
+            f"course-report-{semester.session.name.replace('/', '-')}-{semester.term.lower()}.pdf"
+        )
+        return pdf_response(filename, content)

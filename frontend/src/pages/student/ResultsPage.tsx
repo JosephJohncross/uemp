@@ -1,37 +1,29 @@
-import { CalendarCheck, GraduationCap, Printer, TrendingUp } from 'lucide-react'
+import { CalendarCheck, GraduationCap, TrendingUp } from 'lucide-react'
 
-import { useCurrentUser } from '@/auth/useAuth'
 import { DataTable } from '@/components/DataTable'
 import { PageHeader } from '@/components/PageHeader'
-import { PrintHeader } from '@/components/PrintHeader'
+import { DownloadButton } from '@/components/DownloadButton'
 import { GradeBadge } from '@/components/GradeBadge'
 import { StatCard } from '@/components/StatCard'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { classOfDegree } from '@/lib/classOfDegree'
 import { useApiQuery } from '@/lib/queries'
 import type { StudentResults } from '@/lib/types'
 
 export default function ResultsPage() {
-  const user = useCurrentUser()
   const { data, isLoading, error } = useApiQuery<StudentResults>('/student/results/')
 
   return (
     <>
-      <PrintHeader title="Statement of results" user={user} />
-
       <PageHeader
         title="Results"
         description="Only results approved by the department are shown."
         actions={
-          <Button
-            variant="outline"
-            onClick={() => window.print()}
+          <DownloadButton
+            path="/student/results/statement/"
+            label="Download statement"
             disabled={!data?.semesters.length}
-          >
-            <Printer />
-            Print statement
-          </Button>
+          />
         }
       />
 

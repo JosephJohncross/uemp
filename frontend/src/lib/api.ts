@@ -50,13 +50,18 @@ interface RequestOptions {
   params?: QueryParams
 }
 
-export async function api<T>(path: string, { method = 'GET', body, params }: RequestOptions = {}) {
+function apiUrl(path: string, params?: QueryParams) {
   const url = new URL(`/api${path}`, window.location.origin)
   for (const [key, value] of Object.entries(params ?? {})) {
     if (value !== undefined && value !== null && value !== '') {
       url.searchParams.set(key, String(value))
     }
   }
+  return url
+}
+
+export async function api<T>(path: string, { method = 'GET', body, params }: RequestOptions = {}) {
+  const url = apiUrl(path, params)
 
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -73,4 +78,20 @@ export async function api<T>(path: string, { method = 'GET', body, params }: Req
   const data = await response.json().catch(() => null)
   if (!response.ok) throw new ApiError(response.status, data)
   return data as T
+}
+
+/** Fetches a file the API generates (a PDF) and saves it under the name the server gives it. */
+export async function downloadFile(path: string, params?: QueryParams) {
+  const response = await fetch(apiUrl(path, params), { credentials: 'same-origin' })
+  if (!response.ok) {
+    throw new ApiError(response.status, await response.json().catch(() => null))
+  }
+  const disposition = response.headers.get('Content-Disposition') ?? ''
+  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? 'document.pdf'
+
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(await response.blob())
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(link.href)
 }

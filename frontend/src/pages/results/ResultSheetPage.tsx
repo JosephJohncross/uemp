@@ -2,7 +2,6 @@ import {
   ArrowLeft,
   Check,
   CircleCheck,
-  Printer,
   RotateCcw,
   Save,
   Send,
@@ -16,6 +15,7 @@ import { Link, useParams } from 'react-router'
 import { useCurrentUser } from '@/auth/useAuth'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { PageHeader } from '@/components/PageHeader'
+import { DownloadButton } from '@/components/DownloadButton'
 import { GradeDistribution } from '@/components/GradeDistribution'
 import { ProgressBar } from '@/components/ProgressBar'
 import { StatCard } from '@/components/StatCard'
@@ -136,7 +136,7 @@ function ResultSheetView({ sheet, role }: { sheet: ResultSheetDetail; role: Role
 
   return (
     <>
-      <Button asChild variant="ghost" size="sm" className="-ml-2 print:hidden">
+      <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link to={isLecturer ? ROLE_HOME.LECTURER : `${ROLE_HOME[role]}/results`}>
           <ArrowLeft />
           Back
@@ -154,10 +154,7 @@ function ResultSheetView({ sheet, role }: { sheet: ResultSheetDetail; role: Role
         }
         actions={
           <>
-            <Button variant="outline" onClick={() => window.print()}>
-              <Printer />
-              Print class list
-            </Button>
+            <DownloadButton path={`${path}class-list/`} label="Download class list" />
             {editable && (
               <>
                 <Button

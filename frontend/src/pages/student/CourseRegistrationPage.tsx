@@ -1,11 +1,10 @@
-import { CheckCircle2, Printer } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 
-import { useCurrentUser } from '@/auth/useAuth'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { DataTable } from '@/components/DataTable'
 import { PageHeader } from '@/components/PageHeader'
-import { PrintHeader } from '@/components/PrintHeader'
+import { DownloadButton } from '@/components/DownloadButton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,7 +14,6 @@ import { useApiMutation, useApiQuery } from '@/lib/queries'
 import type { AvailableCourses, MyRegistrations } from '@/lib/types'
 
 export default function CourseRegistrationPage() {
-  const user = useCurrentUser()
   const available = useApiQuery<AvailableCourses>('/student/registration/available/')
   const mine = useApiQuery<MyRegistrations>('/student/registration/')
   const [selected, setSelected] = useState<Set<number>>(new Set())
@@ -51,27 +49,19 @@ export default function CourseRegistrationPage() {
 
   return (
     <>
-      <PrintHeader
-        title={`Course registration slip — ${mine.data?.semester.label ?? ''}`}
-        user={user}
-      />
-
       <PageHeader
         title="Course registration"
         description={available.data?.semester.label}
         actions={
-          <Button
-            variant="outline"
-            onClick={() => window.print()}
+          <DownloadButton
+            path="/student/registration/slip/"
+            label="Download registration slip"
             disabled={!mine.data?.registrations.length}
-          >
-            <Printer />
-            Print registration slip
-          </Button>
+          />
         }
       />
 
-      <section className="space-y-3 print:hidden">
+      <section className="space-y-3">
         {!isOpen && available.data && (
           <Alert>
             <AlertTitle>Registration is closed</AlertTitle>

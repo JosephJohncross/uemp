@@ -9,6 +9,8 @@ from apps.academics.models import Semester
 from apps.academics.serializers import SemesterSerializer
 from apps.academics.services import get_current_semester
 from apps.core.permissions import IsAdmin, IsStudent, Role, staff_department_id
+from apps.reports import documents
+from apps.reports.pdf import pdf_response
 
 from . import services
 from .models import CourseRegistration
@@ -57,6 +59,13 @@ class StudentRegistrationViewSet(viewsets.ViewSet):
             CourseRegistrationSerializer(registrations, many=True).data,
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=False)
+    def slip(self, request):
+        student = request.user.student_profile
+        semester = semester_from_params(request)
+        filename = f"registration-slip-{student.matric_number.replace('/', '-')}.pdf"
+        return pdf_response(filename, documents.registration_slip(student, semester))
 
     @action(detail=False)
     def available(self, request):

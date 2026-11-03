@@ -16,6 +16,8 @@ from apps.core.permissions import (
     staff_department_id,
 )
 from apps.registration.models import CourseRegistration
+from apps.reports import documents
+from apps.reports.pdf import pdf_response
 
 from . import services
 from .models import ResultSheet
@@ -100,6 +102,14 @@ class ResultSheetViewSet(viewsets.ReadOnlyModelViewSet):
     def _respond(self, sheet):
         return self.retrieve(self.request, pk=sheet.pk)
 
+    @action(detail=True, url_path="class-list")
+    def class_list(self, request, pk=None):
+        sheet = self.get_object()
+        filename = (
+            f"class-list-{sheet.course.code}-{sheet.semester.session.name.replace('/', '-')}.pdf"
+        )
+        return pdf_response(filename, documents.class_list(sheet))
+
     @action(detail=True, methods=["put"])
     def scores(self, request, pk=None):
         serializer = SaveScoresSerializer(data=request.data)
@@ -138,3 +148,12 @@ class StudentResultsView(APIView):
     def get(self, request):
         results = services.student_results(request.user.student_profile)
         return Response(StudentResultsSerializer(results).data)
+
+
+class StudentResultStatementView(APIView):
+    permission_classes = [IsStudent]
+
+    def get(self, request):
+        student = request.user.student_profile
+        filename = f"result-statement-{student.matric_number.replace('/', '-')}.pdf"
+        return pdf_response(filename, documents.result_statement(student))

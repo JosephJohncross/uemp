@@ -1,14 +1,14 @@
-import { BookOpen, ClipboardList, Printer, TrendingUp } from 'lucide-react'
+import { BookOpen, ClipboardList, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 
 import { useCurrentUser } from '@/auth/useAuth'
 import { DataTable } from '@/components/DataTable'
+import { DownloadButton } from '@/components/DownloadButton'
 import { FilterSelect } from '@/components/FilterSelect'
 import { PageHeader } from '@/components/PageHeader'
 import { StatCard } from '@/components/StatCard'
 import { StatusBadge } from '@/components/StatusBadge'
-import { Button } from '@/components/ui/button'
 import { useApiQuery, useOptions } from '@/lib/queries'
 import { ROLE_HOME } from '@/lib/roles'
 import type { CourseReport, Semester } from '@/lib/types'
@@ -32,14 +32,15 @@ export default function ReportsPage() {
         title="Course reports"
         description={`Registration and performance for ${data?.semester ?? 'the current semester'}.`}
         actions={
-          <Button variant="outline" onClick={() => window.print()}>
-            <Printer />
-            Print
-          </Button>
+          <DownloadButton
+            path="/reports/courses/export/"
+            params={{ semester }}
+            label="Download PDF"
+          />
         }
       />
 
-      <div className="print:hidden">
+      <div>
         <FilterSelect
           value={semester}
           onChange={setSemester}

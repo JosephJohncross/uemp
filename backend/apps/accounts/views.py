@@ -11,6 +11,8 @@ from rest_framework.views import APIView
 
 from apps.audit.services import record
 from apps.core.permissions import IsAdmin, IsSuperAdmin, Role, staff_department_id
+from apps.reports import documents
+from apps.reports.pdf import pdf_response
 
 from . import services
 from .models import StaffProfile, StudentProfile, User
@@ -139,6 +141,16 @@ class StudentViewSet(ProfileViewSet):
                 Q(matric_number__icontains=search) | name_search(search, prefix="user__")
             )
         return students
+
+    @action(detail=False)
+    def export(self, request):
+        user = request.user
+        scope = (
+            user.staff_profile.department.name
+            if user.role == Role.DEPT_ADMIN
+            else "All departments"
+        )
+        return pdf_response("student-list.pdf", documents.student_list(self.get_queryset(), scope))
 
 
 class StaffViewSet(ProfileViewSet):
