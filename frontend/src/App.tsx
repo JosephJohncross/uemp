@@ -4,6 +4,11 @@ import { RequireRole } from '@/auth/RequireRole'
 import { useAuth } from '@/auth/useAuth'
 import { AppLayout } from '@/layouts/AppLayout'
 import { ROLE_HOME } from '@/lib/roles'
+import AdminDashboard from '@/pages/admin/AdminDashboard'
+import AuditLogPage from '@/pages/admin/AuditLogPage'
+import SessionsPage from '@/pages/admin/SessionsPage'
+import StructurePage from '@/pages/admin/StructurePage'
+import UsersPage from '@/pages/admin/UsersPage'
 import LoginPage from '@/pages/LoginPage'
 import AllocationsPage from '@/pages/manage/AllocationsPage'
 import CoursesPage from '@/pages/manage/CoursesPage'
@@ -65,6 +70,25 @@ export default function App() {
           <Route path="registrations" element={<RegistrationsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="profile" element={<ProfilePage />} />
+        </Route>
+      </Route>
+
+      <Route element={<RequireRole role="SUPER_ADMIN" />}>
+        <Route path="/admin" element={<AppLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="structure" element={<StructurePage />} />
+          <Route path="programs" element={<ProgramsPage />} />
+          <Route path="sessions" element={<SessionsPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="students" element={<StudentsPage />} />
+          <Route path="staff" element={<StaffPage />} />
+          <Route path="courses" element={<CoursesPage />} />
+          <Route path="allocations" element={<AllocationsPage />} />
+          <Route path="registrations" element={<RegistrationsPage />} />
+          <Route path="results" element={<ResultSheetListPage />} />
+          <Route path="results/:sheetId" element={<ResultSheetPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="audit" element={<AuditLogPage />} />
         </Route>
       </Route>
 
