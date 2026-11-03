@@ -5,8 +5,8 @@ department administrators and a super administrator. Students register courses a
 results, lecturers enter and submit scores, departments review and approve them, and the
 super admin runs the academic structure, sessions and user accounts.
 
-- **Live app:** _add the Vercel URL here_
-- **API:** _add the Render URL here_
+- **Live app:** https://uemp-mu.vercel.app
+- **API:** https://uemp-api.onrender.com (health check: `/api/health/`)
 - **Design and decisions:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), which covers the
   architecture, ER diagram, permission model, security and the reasoning behind each choice.
 - **Requirements checklist:** [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md), which maps every point in the
@@ -107,7 +107,7 @@ The backend reads these environment variables. All of them are optional locally.
 | `DJANGO_DEBUG` | `true` | Set to `false` in production. Turns on secure cookies and requires a secret key. |
 | `DJANGO_SECRET_KEY` | dev-only key | Required when debug is off. |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated hostnames. |
-| `DJANGO_CSRF_TRUSTED_ORIGINS` | `http://localhost:5173` | The frontend's origin, e.g. `https://uemp.vercel.app`. |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | `http://localhost:5173` | The frontend's origin, e.g. `https://uemp-mu.vercel.app`. |
 | `DATABASE_URL` | SQLite file | Any database URL, e.g. Postgres. |
 
 ## Grading
@@ -133,6 +133,11 @@ session cookie stays first-party (see decision D11 in the architecture doc).
 2. **Frontend on Vercel.** Import the repository with **Root Directory** set to `frontend`;
    Vite is detected automatically. If Render named the service something other than
    `uemp-api`, update the destination URL in `frontend/vercel.json`.
+
+The live deployment uses `https://uemp-mu.vercel.app` and `https://uemp-api.onrender.com`.
+Vercel redeploys on every push to `main`. The Render Blueprint was created from the public repository
+URL, so after pushing, click **Manual sync** on the Blueprint (or **Manual Deploy** on the service)
+to update the API.
 
 Render's free tier sleeps after 15 minutes idle, so the first request can take up to a minute.
 Open the app once shortly before a demo.

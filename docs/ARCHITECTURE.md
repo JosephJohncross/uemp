@@ -283,7 +283,7 @@ dropping the level check, and removing department scoping. Each broke its tests.
 ## 11. Deployment
 
 ```
-browser ──▶ https://uemp.vercel.app            (React build, static)
+browser ──▶ https://uemp-mu.vercel.app         (React build, static)
               └─ /api/*  ──rewrite──▶ https://uemp-api.onrender.com/api/*   (Django + gunicorn)
                                               └─▶ Render PostgreSQL
 ```
