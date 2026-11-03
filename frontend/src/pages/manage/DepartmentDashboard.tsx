@@ -2,33 +2,29 @@ import { BookOpen, ClipboardList, GraduationCap, Users } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { useCurrentUser } from '@/auth/useAuth'
-import { DataTable } from '@/components/DataTable'
 import { PageHeader } from '@/components/PageHeader'
+import { SheetStatusBreakdown } from '@/components/SheetStatusBreakdown'
 import { StatCard } from '@/components/StatCard'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { formatDateTime } from '@/lib/format'
 import { useApiQuery } from '@/lib/queries'
-import type { Overview, Paginated, ResultSheet, SheetStatus } from '@/lib/types'
-
-const SHEET_STATUS_LABELS: Record<SheetStatus, string> = {
-  DRAFT: 'Draft',
-  SUBMITTED: 'Awaiting review',
-  RETURNED: 'Returned',
-  APPROVED: 'Approved',
-}
+import type { Overview, Paginated, ResultSheet } from '@/lib/types'
 
 export default function DepartmentDashboard() {
   const user = useCurrentUser()
   const overview = useApiQuery<Overview>('/reports/overview/')
   const pending = useApiQuery<Paginated<ResultSheet>>('/result-sheets/', { status: 'SUBMITTED' })
   const data = overview.data
+  const pendingSheets = pending.data?.results ?? []
 
   return (
     <>
       <PageHeader
+        eyebrow={data?.semester ?? undefined}
         title={user.staff_profile?.department_name ?? 'Department'}
-        description={data?.semester ? `Current semester: ${data.semester}` : undefined}
+        description="Department overview"
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -53,68 +49,54 @@ export default function DepartmentDashboard() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-3 lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Results waiting for your review</h2>
+      <div className="grid gap-4 lg:grid-cols-5">
+        <Card className="shadow-none lg:col-span-3">
+          <CardHeader className="flex flex-row items-start justify-between gap-2">
+            <div>
+              <CardTitle>Waiting for your review</CardTitle>
+              <CardDescription>
+                {pendingSheets.length} result sheet{pendingSheets.length === 1 ? '' : 's'} submitted
+                by lecturers
+              </CardDescription>
+            </div>
             <Button asChild variant="outline" size="sm">
-              <Link to="/department/results">All result sheets</Link>
+              <Link to="/department/results">All sheets</Link>
             </Button>
-          </div>
-          <DataTable
-            rows={pending.data?.results}
-            rowKey={(sheet) => sheet.id}
-            isLoading={pending.isLoading}
-            error={pending.error}
-            empty="Nothing to review right now."
-            columns={[
-              {
-                header: 'Course',
-                cell: (s) => (
-                  <div>
-                    <p className="font-medium">{s.course.code}</p>
-                    <p className="text-xs text-muted-foreground">{s.course.title}</p>
-                  </div>
-                ),
-              },
-              {
-                header: 'Submitted by',
-                cell: (s) => s.submitted_by_name,
-                className: 'hidden sm:table-cell',
-              },
-              {
-                header: 'When',
-                cell: (s) => formatDateTime(s.submitted_at),
-                className: 'hidden md:table-cell',
-              },
-              {
-                header: <span className="sr-only">Review</span>,
-                cell: (s) => (
-                  <Button asChild size="sm">
-                    <Link to={`/department/results/${s.id}`}>Review</Link>
-                  </Button>
-                ),
-                className: 'text-right',
-              },
-            ]}
-          />
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Result sheets this semester</CardTitle>
           </CardHeader>
           <CardContent>
-            <dl className="space-y-2 text-sm">
-              {(Object.keys(SHEET_STATUS_LABELS) as SheetStatus[]).map((status) => (
-                <div key={status} className="flex items-center justify-between">
-                  <dt className="text-muted-foreground">{SHEET_STATUS_LABELS[status]}</dt>
-                  <dd className="font-semibold tabular-nums">
-                    {data?.result_sheets?.[status] ?? 0}
-                  </dd>
-                </div>
+            {pending.isLoading && <Skeleton className="h-32 w-full" />}
+            {!pending.isLoading && !pendingSheets.length && (
+              <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+                Nothing to review right now.
+              </p>
+            )}
+            <ul className="divide-y">
+              {pendingSheets.map((sheet) => (
+                <li key={sheet.id} className="flex items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {sheet.course.code} · {sheet.course.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {sheet.submitted_by_name} · {formatDateTime(sheet.submitted_at)}
+                    </p>
+                  </div>
+                  <Button asChild size="sm">
+                    <Link to={`/department/results/${sheet.id}`}>Review</Link>
+                  </Button>
+                </li>
               ))}
-            </dl>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Result sheets</CardTitle>
+            <CardDescription>{data?.semester}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SheetStatusBreakdown counts={data?.result_sheets} />
           </CardContent>
         </Card>
       </div>

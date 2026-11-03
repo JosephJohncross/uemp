@@ -1,12 +1,14 @@
-import { Printer } from 'lucide-react'
+import { CalendarCheck, GraduationCap, Printer, TrendingUp } from 'lucide-react'
 
 import { useCurrentUser } from '@/auth/useAuth'
 import { DataTable } from '@/components/DataTable'
 import { PageHeader } from '@/components/PageHeader'
 import { PrintHeader } from '@/components/PrintHeader'
+import { GradeBadge } from '@/components/GradeBadge'
 import { StatCard } from '@/components/StatCard'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { classOfDegree } from '@/lib/classOfDegree'
 import { useApiQuery } from '@/lib/queries'
 import type { StudentResults } from '@/lib/types'
 
@@ -38,10 +40,11 @@ export default function ResultsPage() {
           label="CGPA"
           value={data ? Number(data.cgpa) : undefined}
           decimals={2}
-          hint="5.00 scale"
+          hint={data?.semesters.length ? classOfDegree(Number(data.cgpa)) : '5.00 scale'}
+          icon={TrendingUp}
         />
-        <StatCard label="Total units" value={data?.total_units} />
-        <StatCard label="Semesters" value={data?.semesters.length} />
+        <StatCard label="Units earned" value={data?.total_units} icon={GraduationCap} />
+        <StatCard label="Semesters completed" value={data?.semesters.length} icon={CalendarCheck} />
       </div>
 
       {isLoading && <Skeleton className="h-48 w-full" />}
@@ -55,11 +58,13 @@ export default function ResultsPage() {
       {[...(data?.semesters ?? [])].reverse().map((semester) => (
         <section key={semester.semester} className="space-y-3 break-inside-avoid">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">{semester.semester_label}</h2>
-            <p className="text-sm">
-              GPA <span className="font-semibold tabular-nums">{semester.gpa}</span> ·{' '}
-              {semester.total_units} units
-            </p>
+            <h2 className="text-lg font-semibold tracking-tight">{semester.semester_label}</h2>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">{semester.total_units} units</span>
+              <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground tabular-nums">
+                GPA {semester.gpa}
+              </span>
+            </div>
           </div>
           <DataTable
             rows={semester.scores}
@@ -81,7 +86,7 @@ export default function ResultsPage() {
               { header: 'Total', cell: (s) => s.total, className: 'text-right' },
               {
                 header: 'Grade',
-                cell: (s) => <span className="font-semibold">{s.grade}</span>,
+                cell: (s) => <GradeBadge grade={s.grade} />,
                 className: 'text-center',
               },
               { header: 'Point', cell: (s) => s.grade_point, className: 'text-right' },

@@ -323,6 +323,7 @@ browser ──▶ https://uemp-mu.vercel.app         (React build, static)
 | D18 | Filtering with plain query parameters in `get_queryset()` | A handful of filters per endpoint; not worth a dependency. | django-filter |
 | D19 | Admin create/edit forms share one config-driven `FormDialog` | Over a dozen near-identical CRUD forms; one component keeps error display and loading states consistent. Pages with real interaction (registration, score entry) are written by hand. | A form library (react-hook-form + zod) duplicating server validation |
 | D20 | Sign-out does a full page load | The simplest way to guarantee no cached data from the previous user survives. | Clearing the query cache by hand (tried first; left the signed-in state stale) |
+| D21 | Plain visual design: one indigo accent, white cards, colour only for status; small charts drawn with CSS | Keeps the interface calm and readable for administrative work, and avoids a charting dependency for three simple bar charts. | Decorative gradients and banners; a chart library |
 
 ## 13. Build plan
 

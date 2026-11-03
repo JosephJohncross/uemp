@@ -1,4 +1,4 @@
-import { Printer } from 'lucide-react'
+import { BookOpen, ClipboardList, Printer, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 
@@ -49,9 +49,14 @@ export default function ReportsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Courses offered" value={courses.length} />
-        <StatCard label="Course registrations" value={registrations} />
-        <StatCard label="Average score" value={average} hint="Across courses with scores" />
+        <StatCard label="Courses offered" value={courses.length} icon={BookOpen} />
+        <StatCard label="Course registrations" value={registrations} icon={ClipboardList} />
+        <StatCard
+          label="Average score"
+          value={average}
+          hint="Across courses with scores"
+          icon={TrendingUp}
+        />
       </div>
 
       <DataTable

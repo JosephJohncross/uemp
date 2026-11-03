@@ -1,5 +1,6 @@
 import { Input } from '@/components/ui/input'
 import { DataTable } from '@/components/DataTable'
+import { GradeBadge } from '@/components/GradeBadge'
 import type { ScoreRow } from '@/lib/types'
 
 import { CA_MAX, EXAM_MAX, type ScoreDraft, type ScoreDrafts } from './scoreDrafts'
@@ -72,7 +73,7 @@ export function ScoreTable({ rows, drafts, editable, onChange }: ScoreTableProps
         },
         {
           header: 'Grade',
-          cell: (row) => <span className="font-semibold">{row.grade || '—'}</span>,
+          cell: (row) => <GradeBadge grade={row.grade} />,
           className: 'text-center',
         },
       ]}

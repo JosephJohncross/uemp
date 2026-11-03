@@ -15,3 +15,10 @@ export const TERM_LABEL: Record<Term, string> = {
   FIRST: 'First semester',
   SECOND: 'Second semester',
 }
+
+export function greeting(now = new Date()) {
+  const hour = now.getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}

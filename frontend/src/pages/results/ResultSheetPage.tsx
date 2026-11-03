@@ -1,10 +1,23 @@
-import { ArrowLeft, Check, Printer, RotateCcw, Save, Send, Undo2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Check,
+  CircleCheck,
+  Printer,
+  RotateCcw,
+  Save,
+  Send,
+  TrendingUp,
+  Undo2,
+  Users,
+} from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 
 import { useCurrentUser } from '@/auth/useAuth'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { PageHeader } from '@/components/PageHeader'
+import { GradeDistribution } from '@/components/GradeDistribution'
+import { ProgressBar } from '@/components/ProgressBar'
 import { StatCard } from '@/components/StatCard'
 import { StatusBadge } from '@/components/StatusBadge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -193,28 +206,31 @@ function ResultSheetView({ sheet, role }: { sheet: ResultSheetDetail; role: Role
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Graded" value={`${summary.graded} / ${summary.registered}`} />
         <StatCard
-          label="Average"
+          label="Graded"
+          value={`${summary.graded} / ${summary.registered}`}
+          hint={<ProgressBar value={summary.graded} max={summary.registered} className="mt-2" />}
+          icon={Users}
+        />
+        <StatCard
+          label="Class average"
           value={summary.average}
+          decimals={1}
           hint={
             summary.highest !== null ? `High ${summary.highest} · Low ${summary.lowest}` : undefined
           }
+          icon={TrendingUp}
         />
         <StatCard
           label="Pass rate"
           value={summary.graded ? `${Math.round((100 * summary.passed) / summary.graded)}%` : null}
-          hint={`${summary.passed} passed`}
+          hint={`${summary.passed} of ${summary.graded} passed`}
+          icon={CircleCheck}
         />
-        <StatCard
-          label="Grades"
-          value={
-            Object.entries(summary.grade_distribution)
-              .sort()
-              .map(([grade, count]) => `${grade}:${count}`)
-              .join(' ') || null
-          }
-        />
+        <Card className="gap-2 p-5 shadow-xs">
+          <p className="text-sm font-medium text-muted-foreground">Grade distribution</p>
+          <GradeDistribution counts={summary.grade_distribution} />
+        </Card>
       </div>
 
       <ScoreTable rows={sheet.rows} drafts={drafts} editable={editable} onChange={updateDraft} />
@@ -225,15 +241,18 @@ function ResultSheetView({ sheet, role }: { sheet: ResultSheetDetail; role: Role
         </CardHeader>
         <CardContent>
           {sheet.history.length ? (
-            <ol className="space-y-3 border-l pl-4">
+            <ol className="relative space-y-4 border-l pl-5">
               {sheet.history.map((entry) => (
-                <li key={entry.id} className="text-sm">
+                <li key={entry.id} className="relative text-sm">
+                  <span className="absolute top-1.5 -left-[1.6rem] size-2.5 rounded-full bg-primary ring-4 ring-card" />
                   <p className="font-medium">{entry.summary}</p>
                   <p className="text-xs text-muted-foreground">
                     {entry.actor_name ?? 'System'} · {formatDateTime(entry.created_at)}
                   </p>
                   {typeof entry.details.comment === 'string' && entry.details.comment && (
-                    <p className="mt-1 text-muted-foreground">“{entry.details.comment}”</p>
+                    <p className="mt-1.5 rounded-md bg-muted px-3 py-2 text-muted-foreground italic">
+                      “{entry.details.comment}”
+                    </p>
                   )}
                 </li>
               ))}
@@ -273,7 +292,7 @@ function SheetStatusNotice({ sheet, isLecturer, hasUnsavedChanges }: SheetStatus
   }
   if (sheet.status === 'SUBMITTED') {
     return (
-      <Alert>
+      <Alert className="border-amber-200 bg-amber-50 text-amber-900">
         <AlertTitle>Awaiting departmental review</AlertTitle>
         <AlertDescription>
           Submitted by {sheet.submitted_by_name} on {formatDateTime(sheet.submitted_at)}.
@@ -284,7 +303,7 @@ function SheetStatusNotice({ sheet, isLecturer, hasUnsavedChanges }: SheetStatus
   }
   if (sheet.status === 'APPROVED') {
     return (
-      <Alert>
+      <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900">
         <AlertTitle>Approved</AlertTitle>
         <AlertDescription>
           Approved by {sheet.reviewed_by_name} on {formatDateTime(sheet.reviewed_at)}. Students can

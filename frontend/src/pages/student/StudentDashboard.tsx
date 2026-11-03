@@ -1,13 +1,14 @@
-import { BookOpen, ClipboardList, GraduationCap, TrendingUp } from 'lucide-react'
+import { ArrowRight, BookOpen, ClipboardList, GraduationCap, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { useCurrentUser } from '@/auth/useAuth'
-import { DataTable } from '@/components/DataTable'
+import { GpaTrend } from '@/components/GpaTrend'
 import { PageHeader } from '@/components/PageHeader'
 import { StatCard } from '@/components/StatCard'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { classOfDegree } from '@/lib/classOfDegree'
 import { useApiQuery } from '@/lib/queries'
 import type { MyRegistrations, StudentResults } from '@/lib/types'
 
@@ -17,12 +18,15 @@ export default function StudentDashboard() {
   const registration = useApiQuery<MyRegistrations>('/student/registration/')
   const results = useApiQuery<StudentResults>('/student/results/')
   const semester = registration.data?.semester
+  const registrations = registration.data?.registrations ?? []
+  const hasResults = Boolean(results.data?.semesters.length)
 
   return (
     <>
       <PageHeader
+        eyebrow={semester?.label}
         title={`Welcome, ${user.first_name}`}
-        description={semester ? `Current semester: ${semester.label}` : undefined}
+        description={`${profile.matric_number} · ${profile.program_name} · ${profile.level} level`}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -30,7 +34,7 @@ export default function StudentDashboard() {
           label="CGPA"
           value={results.data ? Number(results.data.cgpa) : undefined}
           decimals={2}
-          hint="Approved results only"
+          hint={hasResults ? classOfDegree(Number(results.data!.cgpa)) : 'No approved results yet'}
           icon={TrendingUp}
         />
         <StatCard
@@ -40,8 +44,8 @@ export default function StudentDashboard() {
           icon={GraduationCap}
         />
         <StatCard
-          label="Registered this semester"
-          value={registration.data?.registrations.length}
+          label="Courses this semester"
+          value={registrations.length}
           hint={`${registration.data?.total_units ?? 0} units`}
           icon={BookOpen}
         />
@@ -53,58 +57,63 @@ export default function StudentDashboard() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Academic profile</CardTitle>
+      <div className="grid gap-4 lg:grid-cols-5">
+        <Card className="shadow-none lg:col-span-3">
+          <CardHeader className="flex flex-row items-start justify-between gap-2">
+            <div>
+              <CardTitle>Registered courses</CardTitle>
+              <CardDescription>{semester?.label}</CardDescription>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/student/registration">
+                {registrations.length ? 'Manage' : 'Register courses'}
+                <ArrowRight />
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent>
-            <dl className="space-y-3 text-sm">
-              {[
-                ['Matric number', profile.matric_number],
-                ['Program', profile.program_name],
-                ['Department', profile.department_name],
-                ['Faculty', profile.faculty_name],
-                ['Level', `${profile.level} level`],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <dt className="text-muted-foreground">{label}</dt>
-                  <dd className="font-medium">{value}</dd>
-                </div>
+            {registration.isLoading && <Skeleton className="h-32 w-full" />}
+            {!registration.isLoading && !registrations.length && (
+              <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+                You haven't registered any courses this semester.
+              </p>
+            )}
+            <ul className="divide-y">
+              {registrations.map((row) => (
+                <li key={row.id} className="flex items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {row.course.code} · {row.course.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{row.course.department_name}</p>
+                  </div>
+                  <span className="shrink-0 text-sm text-muted-foreground tabular-nums">
+                    {row.course.units} units
+                  </span>
+                </li>
               ))}
-            </dl>
+            </ul>
           </CardContent>
         </Card>
 
-        <div className="space-y-3 lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Registered courses</h2>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/student/registration">
-                {registration.data?.registrations.length ? 'View registration' : 'Register courses'}
-              </Link>
+        <Card className="shadow-none lg:col-span-2">
+          <CardHeader className="flex flex-row items-start justify-between gap-2">
+            <div>
+              <CardTitle>GPA by semester</CardTitle>
+              <CardDescription>Approved results, 5.00 scale</CardDescription>
+            </div>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/student/results">Details</Link>
             </Button>
-          </div>
-          <DataTable
-            rows={registration.data?.registrations}
-            rowKey={(row) => row.id}
-            isLoading={registration.isLoading}
-            error={registration.error}
-            empty="You haven't registered any courses this semester."
-            columns={[
-              {
-                header: 'Code',
-                cell: (row) => <span className="font-medium">{row.course.code}</span>,
-              },
-              { header: 'Title', cell: (row) => row.course.title },
-              {
-                header: 'Units',
-                cell: (row) => <Badge variant="outline">{row.course.units}</Badge>,
-                className: 'text-right',
-              },
-            ]}
-          />
-        </div>
+          </CardHeader>
+          <CardContent>
+            {results.isLoading ? (
+              <Skeleton className="h-40 w-full" />
+            ) : (
+              <GpaTrend semesters={results.data?.semesters ?? []} />
+            )}
+          </CardContent>
+        </Card>
       </div>
     </>
   )
