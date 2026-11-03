@@ -213,6 +213,8 @@ so it can never drift out of sync with the underlying scores.
 
 - Session cookie: `HttpOnly`, `SameSite=Lax`, `Secure` in production. CSRF token required on
   all unsafe methods.
+- HTTPS everywhere in production: both platforms redirect HTTP at the edge, and Django sends
+  HSTS (one year). `manage.py check --deploy` passes.
 - Django password hashing (PBKDF2) and password validators.
 - Login endpoint throttled (DRF `ScopedRateThrottle`).
 - Suspended/deactivated users have `is_active=False`; Django refuses both new logins and
