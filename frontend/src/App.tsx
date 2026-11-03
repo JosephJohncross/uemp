@@ -1,30 +1,33 @@
+import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 
 import { RequireRole } from '@/auth/RequireRole'
 import { useAuth } from '@/auth/useAuth'
 import { AppLayout } from '@/layouts/AppLayout'
 import { ROLE_HOME } from '@/lib/roles'
-import AdminDashboard from '@/pages/admin/AdminDashboard'
-import AuditLogPage from '@/pages/admin/AuditLogPage'
-import SessionsPage from '@/pages/admin/SessionsPage'
-import StructurePage from '@/pages/admin/StructurePage'
-import UsersPage from '@/pages/admin/UsersPage'
 import LoginPage from '@/pages/LoginPage'
-import AllocationsPage from '@/pages/manage/AllocationsPage'
-import CoursesPage from '@/pages/manage/CoursesPage'
-import DepartmentDashboard from '@/pages/manage/DepartmentDashboard'
-import ProgramsPage from '@/pages/manage/ProgramsPage'
-import RegistrationsPage from '@/pages/manage/RegistrationsPage'
-import ReportsPage from '@/pages/manage/ReportsPage'
-import StaffPage from '@/pages/manage/StaffPage'
-import StudentsPage from '@/pages/manage/StudentsPage'
-import LecturerDashboard from '@/pages/lecturer/LecturerDashboard'
-import ProfilePage from '@/pages/ProfilePage'
-import ResultSheetListPage from '@/pages/results/ResultSheetListPage'
-import ResultSheetPage from '@/pages/results/ResultSheetPage'
-import CourseRegistrationPage from '@/pages/student/CourseRegistrationPage'
-import ResultsPage from '@/pages/student/ResultsPage'
-import StudentDashboard from '@/pages/student/StudentDashboard'
+
+// Each page is its own chunk, so a role only downloads the screens it can open.
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
+const AuditLogPage = lazy(() => import('@/pages/admin/AuditLogPage'))
+const SessionsPage = lazy(() => import('@/pages/admin/SessionsPage'))
+const StructurePage = lazy(() => import('@/pages/admin/StructurePage'))
+const UsersPage = lazy(() => import('@/pages/admin/UsersPage'))
+const AllocationsPage = lazy(() => import('@/pages/manage/AllocationsPage'))
+const CoursesPage = lazy(() => import('@/pages/manage/CoursesPage'))
+const DepartmentDashboard = lazy(() => import('@/pages/manage/DepartmentDashboard'))
+const ProgramsPage = lazy(() => import('@/pages/manage/ProgramsPage'))
+const RegistrationsPage = lazy(() => import('@/pages/manage/RegistrationsPage'))
+const ReportsPage = lazy(() => import('@/pages/manage/ReportsPage'))
+const StaffPage = lazy(() => import('@/pages/manage/StaffPage'))
+const StudentsPage = lazy(() => import('@/pages/manage/StudentsPage'))
+const LecturerDashboard = lazy(() => import('@/pages/lecturer/LecturerDashboard'))
+const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
+const ResultSheetListPage = lazy(() => import('@/pages/results/ResultSheetListPage'))
+const ResultSheetPage = lazy(() => import('@/pages/results/ResultSheetPage'))
+const CourseRegistrationPage = lazy(() => import('@/pages/student/CourseRegistrationPage'))
+const ResultsPage = lazy(() => import('@/pages/student/ResultsPage'))
+const StudentDashboard = lazy(() => import('@/pages/student/StudentDashboard'))
 
 function HomeRedirect() {
   const { user } = useAuth()

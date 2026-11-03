@@ -28,7 +28,8 @@ export default function StudentDashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="CGPA"
-          value={results.data?.cgpa}
+          value={results.data ? Number(results.data.cgpa) : undefined}
+          decimals={2}
           hint="Approved results only"
           icon={TrendingUp}
         />

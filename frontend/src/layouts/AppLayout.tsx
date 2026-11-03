@@ -1,10 +1,12 @@
 import { GraduationCap, LogOut, Menu } from 'lucide-react'
-import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router'
+import { Suspense, useState } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router'
 
 import { useCurrentUser, useAuth } from '@/auth/useAuth'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,6 +93,7 @@ function UserMenu() {
 
 export function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const location = useLocation()
 
   return (
     <div className="flex min-h-svh bg-muted/30">
@@ -123,7 +126,11 @@ export function AppLayout() {
         </header>
 
         <main className="mx-auto w-full max-w-6xl flex-1 space-y-6 p-4 sm:p-6 print:max-w-none print:p-0">
-          <Outlet />
+          <ErrorBoundary key={location.pathname}>
+            <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+              <Outlet />
+            </Suspense>
+          </ErrorBoundary>
         </main>
       </div>
     </div>

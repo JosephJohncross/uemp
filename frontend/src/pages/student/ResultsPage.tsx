@@ -34,7 +34,12 @@ export default function ResultsPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="CGPA" value={data?.cgpa} hint="5.00 scale" />
+        <StatCard
+          label="CGPA"
+          value={data ? Number(data.cgpa) : undefined}
+          decimals={2}
+          hint="5.00 scale"
+        />
         <StatCard label="Total units" value={data?.total_units} />
         <StatCard label="Semesters" value={data?.semesters.length} />
       </div>
