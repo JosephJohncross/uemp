@@ -9,6 +9,8 @@ super admin runs the academic structure, sessions and user accounts.
 - **API:** _add the Render URL here_
 - **Design and decisions:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), which covers the
   architecture, ER diagram, permission model, security and the reasoning behind each choice.
+- **Requirements checklist:** [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md), which maps every point in the
+  brief to the code and the test that proves it.
 
 ## Test accounts
 
