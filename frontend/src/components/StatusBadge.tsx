@@ -1,19 +1,48 @@
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { SheetStatus, UserStatus } from '@/lib/types'
 
-const STYLES: Record<SheetStatus | UserStatus, { label: string; className: string }> = {
-  DRAFT: { label: 'Draft', className: 'bg-muted text-muted-foreground' },
-  SUBMITTED: { label: 'Awaiting review', className: 'bg-amber-100 text-amber-900' },
-  APPROVED: { label: 'Approved', className: 'bg-emerald-100 text-emerald-900' },
-  RETURNED: { label: 'Returned', className: 'bg-red-100 text-red-900' },
-  ACTIVE: { label: 'Active', className: 'bg-emerald-100 text-emerald-900' },
-  SUSPENDED: { label: 'Suspended', className: 'bg-amber-100 text-amber-900' },
-  DEACTIVATED: { label: 'Deactivated', className: 'bg-muted text-muted-foreground' },
+const STYLES: Record<SheetStatus | UserStatus, { label: string; badge: string; dot: string }> = {
+  DRAFT: { label: 'Draft', badge: 'bg-slate-100 text-slate-700', dot: 'bg-slate-400' },
+  SUBMITTED: {
+    label: 'Awaiting review',
+    badge: 'bg-amber-50 text-amber-800 ring-amber-200',
+    dot: 'bg-amber-500',
+  },
+  APPROVED: {
+    label: 'Approved',
+    badge: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
+    dot: 'bg-emerald-500',
+  },
+  RETURNED: {
+    label: 'Returned',
+    badge: 'bg-rose-50 text-rose-800 ring-rose-200',
+    dot: 'bg-rose-500',
+  },
+  ACTIVE: {
+    label: 'Active',
+    badge: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
+    dot: 'bg-emerald-500',
+  },
+  SUSPENDED: {
+    label: 'Suspended',
+    badge: 'bg-amber-50 text-amber-800 ring-amber-200',
+    dot: 'bg-amber-500',
+  },
+  DEACTIVATED: { label: 'Deactivated', badge: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400' },
 }
 
 export function StatusBadge({ status }: { status: SheetStatus | UserStatus | null }) {
   if (!status) return <span className="text-muted-foreground">—</span>
   const style = STYLES[status]
-  return <Badge className={cn('border-transparent', style.className)}>{style.label}</Badge>
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ring-1 ring-transparent ring-inset',
+        style.badge,
+      )}
+    >
+      <span className={cn('size-1.5 rounded-full', style.dot)} />
+      {style.label}
+    </span>
+  )
 }

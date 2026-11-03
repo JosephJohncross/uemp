@@ -39,13 +39,19 @@ export function DataTable<T>({
   footer,
 }: DataTableProps<T>) {
   return (
-    <div className="overflow-hidden rounded-lg border bg-card">
+    <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
       <div className="overflow-x-auto">
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="bg-muted/60">
+            <TableRow className="hover:bg-transparent">
               {columns.map((column, index) => (
-                <TableHead key={index} className={column.className}>
+                <TableHead
+                  key={index}
+                  className={cn(
+                    'h-10 px-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase',
+                    column.className,
+                  )}
+                >
                   {column.header}
                 </TableHead>
               ))}
@@ -56,7 +62,7 @@ export function DataTable<T>({
               Array.from({ length: 4 }, (_, index) => (
                 <TableRow key={index}>
                   {columns.map((_, cellIndex) => (
-                    <TableCell key={cellIndex}>
+                    <TableCell key={cellIndex} className="px-4 py-3">
                       <Skeleton className="h-4 w-full max-w-32" />
                     </TableCell>
                   ))}
@@ -67,7 +73,7 @@ export function DataTable<T>({
                 <TableCell
                   colSpan={columns.length}
                   className={cn(
-                    'h-24 text-center text-muted-foreground',
+                    'h-32 text-center text-muted-foreground',
                     error && 'text-destructive',
                   )}
                 >
@@ -78,9 +84,9 @@ export function DataTable<T>({
             {!isLoading &&
               !error &&
               rows?.map((row) => (
-                <TableRow key={rowKey(row)}>
+                <TableRow key={rowKey(row)} className="hover:bg-accent/40">
                   {columns.map((column, index) => (
-                    <TableCell key={index} className={column.className}>
+                    <TableCell key={index} className={cn('px-4 py-3', column.className)}>
                       {column.cell(row)}
                     </TableCell>
                   ))}
@@ -89,7 +95,7 @@ export function DataTable<T>({
           </TableBody>
         </Table>
       </div>
-      {footer && <div className="border-t px-4 py-2">{footer}</div>}
+      {footer && <div className="border-t bg-muted/30 px-4 py-2.5">{footer}</div>}
     </div>
   )
 }
