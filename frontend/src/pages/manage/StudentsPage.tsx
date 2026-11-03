@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { Plus, Printer } from 'lucide-react'
 import { useState } from 'react'
 
 import { useCurrentUser } from '@/auth/useAuth'
@@ -116,10 +116,16 @@ export default function StudentsPage() {
             : `Students in ${user.staff_profile?.department_name}.`
         }
         actions={
-          <Button onClick={dialog.openCreate}>
-            <Plus />
-            Register student
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => window.print()}>
+              <Printer />
+              Print list
+            </Button>
+            <Button onClick={dialog.openCreate}>
+              <Plus />
+              Register student
+            </Button>
+          </>
         }
       />
 

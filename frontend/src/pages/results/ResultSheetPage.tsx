@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, RotateCcw, Save, Send, Undo2 } from 'lucide-react'
+import { ArrowLeft, Check, Printer, RotateCcw, Save, Send, Undo2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 
@@ -141,6 +141,10 @@ function ResultSheetView({ sheet, role }: { sheet: ResultSheetDetail; role: Role
         }
         actions={
           <>
+            <Button variant="outline" onClick={() => window.print()}>
+              <Printer />
+              Print class list
+            </Button>
             {editable && (
               <>
                 <Button

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useCurrentUser } from '@/auth/useAuth'
 import { DataTable, Pager } from '@/components/DataTable'
 import { FilterSelect } from '@/components/FilterSelect'
+import { DeleteButton } from '@/components/DeleteButton'
 import { FormDialog, type FieldConfig, type FormValues } from '@/components/FormDialog'
 import { PageHeader } from '@/components/PageHeader'
 import { SearchInput } from '@/components/SearchInput'
@@ -208,9 +209,16 @@ export default function CoursesPage() {
             header: <span className="sr-only">Actions</span>,
             cell: (c) =>
               isSuperAdmin || c.department === ownDepartment ? (
-                <Button size="sm" variant="outline" onClick={() => dialog.openEdit(c)}>
-                  Edit
-                </Button>
+                <div className="flex justify-end gap-1">
+                  <Button size="sm" variant="outline" onClick={() => dialog.openEdit(c)}>
+                    Edit
+                  </Button>
+                  <DeleteButton
+                    path={`/courses/${c.id}/`}
+                    label={c.code}
+                    invalidates={['/courses/']}
+                  />
+                </div>
               ) : null,
             className: 'text-right',
           },

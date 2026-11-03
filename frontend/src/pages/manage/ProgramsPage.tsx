@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react'
 
 import { useCurrentUser } from '@/auth/useAuth'
 import { DataTable } from '@/components/DataTable'
+import { DeleteButton } from '@/components/DeleteButton'
 import { FormDialog, type FieldConfig, type FormValues } from '@/components/FormDialog'
 import { PageHeader } from '@/components/PageHeader'
 import { useFormDialog } from '@/components/useFormDialog'
@@ -98,9 +99,16 @@ export default function ProgramsPage() {
           {
             header: <span className="sr-only">Actions</span>,
             cell: (p) => (
-              <Button size="sm" variant="outline" onClick={() => dialog.openEdit(p)}>
-                Edit
-              </Button>
+              <div className="flex justify-end gap-1">
+                <Button size="sm" variant="outline" onClick={() => dialog.openEdit(p)}>
+                  Edit
+                </Button>
+                <DeleteButton
+                  path={`/programs/${p.id}/`}
+                  label={p.name}
+                  invalidates={['/programs/']}
+                />
+              </div>
             ),
             className: 'text-right',
           },

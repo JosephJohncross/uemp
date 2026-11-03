@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react'
 
 import { DataTable } from '@/components/DataTable'
+import { DeleteButton } from '@/components/DeleteButton'
 import { FormDialog, type FormValues } from '@/components/FormDialog'
 import { PageHeader } from '@/components/PageHeader'
 import { useFormDialog } from '@/components/useFormDialog'
@@ -79,9 +80,20 @@ export default function StructurePage() {
               {
                 header: <span className="sr-only">Actions</span>,
                 cell: (d) => (
-                  <Button size="sm" variant="outline" onClick={() => departmentDialog.openEdit(d)}>
-                    Edit
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => departmentDialog.openEdit(d)}
+                    >
+                      Edit
+                    </Button>
+                    <DeleteButton
+                      path={`/departments/${d.id}/`}
+                      label={d.name}
+                      invalidates={['/departments/', '/reports/']}
+                    />
+                  </div>
                 ),
                 className: 'text-right',
               },
@@ -112,9 +124,16 @@ export default function StructurePage() {
               {
                 header: <span className="sr-only">Actions</span>,
                 cell: (f) => (
-                  <Button size="sm" variant="outline" onClick={() => facultyDialog.openEdit(f)}>
-                    Edit
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button size="sm" variant="outline" onClick={() => facultyDialog.openEdit(f)}>
+                      Edit
+                    </Button>
+                    <DeleteButton
+                      path={`/faculties/${f.id}/`}
+                      label={f.name}
+                      invalidates={['/faculties/']}
+                    />
+                  </div>
                 ),
                 className: 'text-right',
               },
