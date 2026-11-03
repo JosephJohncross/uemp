@@ -36,7 +36,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const home = items[0].to
 
   return (
-    <nav className="flex flex-col gap-1">
+    <nav className="-mr-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-2">
       {items.map(({ label, to, icon: Icon }) => (
         <NavLink
           key={to}
