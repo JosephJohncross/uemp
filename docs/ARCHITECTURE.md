@@ -34,7 +34,6 @@ SQLite (default) / PostgreSQL (via DATABASE_URL)
 | Lint       | ruff (Python), oxlint + Prettier (TypeScript) | Fast, zero-config defaults; generated `ui/` and `motion/` folders are excluded. |
 | Routing    | React Router                              | Role-based route guards and nested dashboard layouts. |
 | Documents  | ReportLab                                 | Server-built PDFs for slips, statements and lists. See D17. |
-| Tests      | pytest + pytest-django                    | Focused on permissions and workflow rules. |
 
 ## 3. Backend structure
 
@@ -262,27 +261,7 @@ frontend/src/
 - **Signing out reloads the page**, so no cached response from the previous user can survive into
   the next session on a shared computer.
 
-## 10. Testing
-
-`cd backend && pytest` runs 180 tests in about 20 seconds against a throwaway database. The
-fixtures in `backend/conftest.py` build a small two-department university through the same
-services the API uses.
-
-| File | What it proves |
-|---|---|
-| `core/tests/test_access_matrix.py` | Every role against every endpoint: exactly the roles in the permissions table get through. |
-| `accounts/tests/test_auth.py` | CSRF on login, generic failure messages, suspension ends live sessions, password change, students can only edit contact details. |
-| `accounts/tests/test_user_management.py` | Department scoping (404 across departments, 403 for cross-department writes), validation, status and role changes audited. |
-| `academics/tests/test_academics.py` | Allocation rules, the single current semester, refusing to delete records in use. |
-| `registration/tests/test_registration.py` | Every business rule for registration: program, level and term eligibility, duplicates, closed registration, unit limit, all-or-nothing. |
-| `results/tests/test_result_workflow.py` | The whole result lifecycle, who may do each step, students seeing only approved results, CGPA, and the audit trail. |
-| `reports/tests/test_documents.py` | Each PDF downloads, contains the right records, and is refused or scoped exactly like the data behind it. |
-| `results/tests/test_grading.py` | Every grade boundary and the GPA arithmetic. |
-
-To check the tests catch real bugs, three rules were broken on purpose: allowing self-approval,
-dropping the level check, and removing department scoping. Each broke its tests.
-
-## 11. Deployment
+## 10. Deployment
 
 ```
 browser ──▶ https://uemp-mu.vercel.app         (React build, static)
@@ -301,7 +280,7 @@ browser ──▶ https://uemp-mu.vercel.app         (React build, static)
 - Render's free tier sleeps after 15 minutes idle, so the first request can take up to a minute.
   Open the backend's `/api/health/` before a demo.
 
-## 12. Decisions
+## 11. Decisions
 
 | #  | Decision | Reason | Rejected |
 |----|----------|--------|----------|
@@ -310,7 +289,7 @@ browser ──▶ https://uemp-mu.vercel.app         (React build, static)
 | D3 | Four fixed roles as an enum on `User` | The brief defines four roles with fixed rules. A configurable permission matrix adds UI and complexity with no requirement behind it. | Django Groups/Permissions matrix |
 | D4 | Separate `StudentProfile` / `StaffProfile` | Keeps `User` focused on auth; role-specific fields don't leave nullable columns everywhere. | Single wide user table |
 | D5 | Approval at `ResultSheet` level, not per score | Departments approve a course's results as a batch; one status to track and audit. | Status on every score |
-| D6 | Business rules in `services.py` | One place to read and test each rule; views and serializers stay thin. | Rules in signals / fat serializers |
+| D6 | Business rules in `services.py` | One place to read and check each rule; views and serializers stay thin. | Rules in signals / fat serializers |
 | D7 | Explicit audit calls, not signals | Audit entries need the acting user and intent ("approved", "returned"), which signals don't know. Explicit calls are also easier to follow. | `post_save` signals, third-party audit packages |
 | D8 | GPA computed on read | Avoids stale denormalized values; data volume is small. | Stored GPA fields |
 | D9 | SQLite default, Postgres-ready | Zero-setup evaluation; nothing in the code is SQLite-specific. | Requiring Postgres/Docker to run |
@@ -327,17 +306,17 @@ browser ──▶ https://uemp-mu.vercel.app         (React build, static)
 | D20 | Sign-out does a full page load | The simplest way to guarantee no cached data from the previous user survives. | Clearing the query cache by hand (tried first; left the signed-in state stale) |
 | D21 | Plain visual design: one indigo accent, white cards, colour only for status; small charts drawn with CSS | Keeps the interface calm and readable for administrative work, and avoids a charting dependency for three simple bar charts. | Decorative gradients and banners; a chart library |
 
-## 13. Build plan
+## 12. Build plan
 
 | Phase | Work | Est. |
 |-------|------|------|
 | 0 | Scaffold backend + frontend, git, lint/format config | 1 h |
 | 1 | Models, migrations, constraints, `seed_demo` command | 3 h |
 | 2 | Auth endpoints, permission classes, scoped viewsets, services | 5 h |
-| 3 | Tests: permissions per role, registration rules, result transitions, GPA | 2 h |
+| 3 | Check permissions per role, registration rules, result transitions, GPA | 2 h |
 | 4 | Frontend: login, layout, then student → lecturer → dept admin → super admin pages | 8 h |
 | 5 | README, ER diagram export, test credentials, polish, error states | 2 h |
 | 6 | Record demo | 1 h |
 
-Order matters: backend workflows and tests first, so the UI is built against an API that is
+Order matters: backend workflows first, so the UI is built against an API that is
 already known to enforce the rules.

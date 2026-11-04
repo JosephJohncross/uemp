@@ -1,61 +1,60 @@
 # Requirements checklist
 
-How each point in the assessment brief is met. Tests live under `backend/apps/*/tests/`;
-"UI" names the screen in the frontend.
+How each point in the assessment brief is met. "UI" names the screen in the frontend.
 
 ## 2. Roles and permissions
 
 ### A. Student
 
-| Requirement | Where | Verified by |
-|---|---|---|
-| Log in securely to their dashboard | Session login, CSRF, throttling; UI *Dashboard* | `test_auth.py` |
-| View and update permitted profile information | `PATCH /api/auth/me/` (phone, address only); UI *Profile* | `test_student_can_update_only_contact_details` |
-| View department, faculty, program, matric number | `GET /api/auth/me/`; UI *Dashboard*, *Profile* | `test_login_returns_profile_and_starts_session` |
-| View available courses for program and level | `GET /api/student/registration/available/` | `test_available_courses_match_program_level_and_term` |
-| Register courses for the current semester | `POST /api/student/registration/` | `test_student_registers_courses_and_sees_them` |
-| View registered courses and units | `GET /api/student/registration/`; UI *Course registration* | same |
-| View results and semester grades | `GET /api/student/results/`; UI *Results* | `test_students_see_only_approved_results` |
-| View academic history and CGPA | same, grouped by semester with GPA and CGPA | `test_cgpa_weights_results_by_course_units` |
-| Download or print registration summary and result statement | PDF from `/api/student/registration/slip/` and `/api/student/results/statement/` (D17) | `test_registration_slip_lists_the_students_courses`, `test_result_statement_includes_only_approved_results` |
-| Cannot register other students | Student endpoints take no student ID; the student comes from the session (D15) | `test_student_cannot_register_someone_else` |
-| Cannot upload or modify results | Result endpoints require lecturer/admin roles | `test_access_matrix.py` |
-| Cannot access lecturer or admin dashboards | API role checks; UI route guard | `test_access_matrix.py` |
-| Cannot modify academic records or grades | Profile update accepts only phone and address | `test_student_can_update_only_contact_details` |
+| Requirement | Where |
+|---|---|
+| Log in securely to their dashboard | Session login, CSRF, throttling; UI *Dashboard* |
+| View and update permitted profile information | `PATCH /api/auth/me/` (phone, address only); UI *Profile* |
+| View department, faculty, program, matric number | `GET /api/auth/me/`; UI *Dashboard*, *Profile* |
+| View available courses for program and level | `GET /api/student/registration/available/` |
+| Register courses for the current semester | `POST /api/student/registration/` |
+| View registered courses and units | `GET /api/student/registration/`; UI *Course registration* |
+| View results and semester grades | `GET /api/student/results/`; UI *Results* |
+| View academic history and CGPA | same, grouped by semester with GPA and CGPA |
+| Download or print registration summary and result statement | PDF from `/api/student/registration/slip/` and `/api/student/results/statement/` (D17) |
+| Cannot register other students | Student endpoints take no student ID; the student comes from the session (D15) |
+| Cannot upload or modify results | Result endpoints require lecturer/admin roles |
+| Cannot access lecturer or admin dashboards | API role checks; UI route guard |
+| Cannot modify academic records or grades | Profile update accepts only phone and address |
 
 ### B. Lecturer
 
-| Requirement | Where | Verified by |
-|---|---|---|
-| Log in to lecturer dashboard | UI *My courses* | `test_access_matrix.py` |
-| View and manage assigned courses | `GET /api/allocations/` (own only) | `test_lecturer_sees_only_own_allocations` |
-| View registered students / class lists | Result sheet rows; UI *Class list & results*; PDF class list | `test_lecturer_sees_class_list_with_empty_scores` |
-| Enter CA and exam scores | `PUT /api/result-sheets/{id}/scores/` | `test_saving_scores_computes_total_and_grade` |
-| Save results as drafts | Same endpoint; sheet stays `DRAFT` | same |
-| Submit for departmental review | `POST .../submit/` | `test_incomplete_sheet_cannot_be_submitted`, `fill_and_submit` |
-| View submission status and feedback | Status, review comment and history on the sheet | `test_rejection_requires_feedback_and_reopens_editing` |
-| View course and student performance summaries | Sheet summary: average, high/low, pass rate, grade spread, per-student grades | manual |
-| Only manage courses assigned to them | Queryset scoped to allocations (404 otherwise) | `test_lecturer_not_allocated_cannot_see_or_edit_sheet` |
-| Cannot modify courses or students outside their department | No write access to courses or students | `test_writes_refused_for_roles_without_authority` |
-| Submitted results not editable without authorized reopening | Edits allowed only in `DRAFT`/`RETURNED`; reopen is a dept-admin action | `test_submitted_sheet_is_locked_for_the_lecturer`, `test_reopening_hides_results_until_reapproved` |
-| Cannot approve own results | Lecturers can't call approve; reviewers can't approve their own submission | `test_only_owning_department_admin_can_review`, `test_admin_cannot_approve_results_they_submitted` |
+| Requirement | Where |
+|---|---|
+| Log in to lecturer dashboard | UI *My courses* |
+| View and manage assigned courses | `GET /api/allocations/` (own only) |
+| View registered students / class lists | Result sheet rows; UI *Class list & results*; PDF class list |
+| Enter CA and exam scores | `PUT /api/result-sheets/{id}/scores/` |
+| Save results as drafts | Same endpoint; sheet stays `DRAFT` |
+| Submit for departmental review | `POST .../submit/` |
+| View submission status and feedback | Status, review comment and history on the sheet |
+| View course and student performance summaries | Sheet summary: average, high/low, pass rate, grade spread, per-student grades |
+| Only manage courses assigned to them | Queryset scoped to allocations (404 otherwise) |
+| Cannot modify courses or students outside their department | No write access to courses or students |
+| Submitted results not editable without authorized reopening | Edits allowed only in `DRAFT`/`RETURNED`; reopen is a dept-admin action |
+| Cannot approve own results | Lecturers can't call approve; reviewers can't approve their own submission |
 
 ### C. Department admin
 
-| Requirement | Where | Verified by |
-|---|---|---|
-| Departmental dashboard | `GET /api/reports/overview/` scoped; UI *Dashboard* | manual |
-| Register and manage students in department | `/api/students/`; UI *Students* | `test_user_management.py` |
-| Create and manage lecturer profiles | `/api/staff/` (lecturers only); UI *Lecturers* | `test_dept_admin_can_create_lecturer_but_not_another_admin` |
-| Create and manage departmental courses | `/api/courses/`; UI *Courses* | `test_dept_admin_cannot_edit_another_departments_course` |
-| Assign lecturers to courses | `POST /api/allocations/`; UI *Course allocation* | `test_academics.py` |
-| Manage academic levels and programs | `/api/programs/` (duration sets the levels); student level edits | `test_student_creation_validation` (level bound) |
-| View student course registrations | `/api/registrations/`; UI *Registrations* | `test_dept_admin_sees_registrations_for_own_students_and_courses` |
-| Review, approve or reject results | `approve` / `reject` actions; UI *Result approvals* | `test_result_workflow.py` |
-| Return results for correction | `reject` with a required comment → `RETURNED` | `test_rejection_requires_feedback_and_reopens_editing` |
-| Basic departmental reports | `/api/reports/courses/`; UI *Reports*; PDF export | `test_course_report_export` |
-| Only their own department | Queryset scoping + `ensure_department_access()` | `test_dept_admin_gets_404_for_another_departments_student`, `test_dept_admin_cannot_create_student_in_another_department` |
-| No super admin functions or system settings | `IsSuperAdmin` on users, audit log, faculties, sessions | `test_access_matrix.py` |
+| Requirement | Where |
+|---|---|
+| Departmental dashboard | `GET /api/reports/overview/` scoped; UI *Dashboard* |
+| Register and manage students in department | `/api/students/`; UI *Students* |
+| Create and manage lecturer profiles | `/api/staff/` (lecturers only); UI *Lecturers* |
+| Create and manage departmental courses | `/api/courses/`; UI *Courses* |
+| Assign lecturers to courses | `POST /api/allocations/`; UI *Course allocation* |
+| Manage academic levels and programs | `/api/programs/` (duration sets the levels); student level edits |
+| View student course registrations | `/api/registrations/`; UI *Registrations* |
+| Review, approve or reject results | `approve` / `reject` actions; UI *Result approvals* |
+| Return results for correction | `reject` with a required comment → `RETURNED` |
+| Basic departmental reports | `/api/reports/courses/`; UI *Reports*; PDF export |
+| Only their own department | Queryset scoping + `ensure_department_access()` |
+| No super admin functions or system settings | `IsSuperAdmin` on users, audit log, faculties, sessions |
 
 ### D. Super admin
 
@@ -67,8 +66,8 @@ How each point in the assessment brief is met. Tests live under `backend/apps/*/
 | Student and lecturer accounts | UI *Students*, *Staff* |
 | Academic sessions and semesters | UI *Sessions & semesters*: create, set current, open/close registration |
 | Courses and allocations | UI *Courses*, *Course allocation* |
-| Activate, deactivate, suspend accounts | UI *User accounts*; suspension ends live sessions (`test_suspension_ends_an_existing_session`) |
-| Manage roles and permissions | Lecturer ↔ department admin swaps (`test_role_swap_allowed_only_between_staff_roles`); permissions are fixed per role (D3) |
+| Activate, deactivate, suspend accounts | UI *User accounts*; suspension ends live sessions |
+| Manage roles and permissions | Lecturer ↔ department admin swaps; permissions are fixed per role (D3) |
 | Monitor course registrations | UI *Registrations* across all departments |
 | Oversee departmental result approvals | UI *Result approvals*, read-only by design (see §5 of the architecture doc) |
 | University-wide academic reports | UI *Reports* |
@@ -92,12 +91,12 @@ How each point in the assessment brief is met. Tests live under `backend/apps/*/
 
 ## 4. Workflows
 
-| Workflow | Step-by-step in the app | End-to-end test |
-|---|---|---|
-| 1. Student course registration | README "Trying the main workflows" | `test_registration.py` |
-| 2. Lecturer result submission | same | `test_result_workflow.py` |
-| 3. Departmental result approval | same | `test_result_workflow.py` |
-| 4. Super admin management | same | `test_academics.py`, `test_user_management.py` |
+| Workflow | Step-by-step in the app |
+|---|---|
+| 1. Student course registration | README "Trying the main workflows" |
+| 2. Lecturer result submission | same |
+| 3. Departmental result approval | same |
+| 4. Super admin management | same |
 
 ## 5. Technical requirements
 
@@ -116,17 +115,17 @@ How each point in the assessment brief is met. Tests live under `backend/apps/*/
 
 ## 6. Business rules
 
-| Rule | Enforced in | Test |
-|---|---|---|
-| 1. Register only courses for own program, level, semester | `registration.services.available_courses` | `test_courses_outside_program_level_or_term_are_refused` |
-| 2. No duplicate registration in a semester | Service check + unique constraint | `test_duplicate_registration_is_refused` |
-| 3. Lecturers enter results only for assigned courses | `_ensure_allocated_lecturer` + scoped queryset | `test_lecturer_not_allocated_cannot_see_or_edit_sheet` |
-| 4. Submitted before approval | `TRANSITIONS` table | `test_results_cannot_be_approved_before_submission` |
-| 5. Only the department's admin approves | `_ensure_department_reviewer` | `test_only_owning_department_admin_can_review` |
-| 6. Students see only approved results | `student_results()` filters `APPROVED` | `test_students_see_only_approved_results` |
-| 7. Super admin has university-wide access | No scope filter for super admin | `test_access_matrix.py` |
-| 8. Result actions are traceable | `audit.record()` on every save and transition | `test_every_step_is_audited_with_score_changes` |
-| GPA on a documented, configurable scale | `GRADING_SCALE` in settings; README and architecture §7 | `test_grading.py` |
+| Rule | Enforced in |
+|---|---|
+| 1. Register only courses for own program, level, semester | `registration.services.available_courses` |
+| 2. No duplicate registration in a semester | Service check + unique constraint |
+| 3. Lecturers enter results only for assigned courses | `_ensure_allocated_lecturer` + scoped queryset |
+| 4. Submitted before approval | `TRANSITIONS` table |
+| 5. Only the department's admin approves | `_ensure_department_reviewer` |
+| 6. Students see only approved results | `student_results()` filters `APPROVED` |
+| 7. Super admin has university-wide access | No scope filter for super admin |
+| 8. Result actions are traceable | `audit.record()` on every save and transition |
+| GPA on a documented, configurable scale | `GRADING_SCALE` in settings; README and architecture §7 |
 
 ## 7. Deliverables
 

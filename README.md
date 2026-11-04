@@ -10,7 +10,7 @@ super admin runs the academic structure, sessions and user accounts.
 - **Design and decisions:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), which covers the
   architecture, ER diagram, permission model, security and the reasoning behind each choice.
 - **Requirements checklist:** [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md), which maps every point in the
-  brief to the code and the test that proves it.
+  brief to the code that meets it.
 
 ## Test accounts
 
@@ -36,7 +36,7 @@ buttons that fill these in.
 
 **Course registration.** Sign in as `kemi.alabi@uemp.test` and open *Course registration*.
 Only courses for her program, level and the current semester are listed. Register some, then
-try *Print registration slip*. Sign in as `csc.admin@uemp.test` and the registrations appear
+try *Download registration slip*. Sign in as `csc.admin@uemp.test` and the registrations appear
 under *Registrations*.
 
 **Result entry and approval.**
@@ -90,10 +90,9 @@ npm run dev
 
 Vite forwards `/api` to the backend, so open the app at http://localhost:5173.
 
-### Tests and checks
+### Checks
 
 ```bash
-cd backend && pytest                       # 180 tests: permissions, workflows, grading, documents
 cd backend && ruff check . && ruff format --check .
 cd frontend && npm run lint && npm run build
 ```

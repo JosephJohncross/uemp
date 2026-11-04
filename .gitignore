@@ -3,7 +3,6 @@ __pycache__/
 *.pyc
 .venv/
 .ruff_cache/
-.pytest_cache/
 backend/db.sqlite3
 backend/staticfiles/
 
