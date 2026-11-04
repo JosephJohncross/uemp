@@ -52,7 +52,7 @@ One Django app per domain. Each app owns its models, serializers, views, and `se
 ## 4. Data model
 
 The full ER diagram and table-by-table schema are in [DATABASE.md](DATABASE.md), with the
-diagram also as image files ([PNG](er-diagram.png), [SVG](er-diagram.svg)). This section
+diagram also as an image ([PNG](er-diagram.png)). This section
 summarises the design choices behind it.
 
 ### Key models

@@ -3,9 +3,9 @@
 Types are the PostgreSQL column types. PK = primary key, FK = foreign key, UK = unique.
 The crow's foot marks the "many" side of each relationship, and a circle means optional.
 
-[![ER diagram](er-diagram.svg)](er-diagram.png)
+[![ER diagram](er-diagram.png)](er-diagram.png)
 
-Click the diagram for the full-size PNG. The source is [er-diagram.mmd](er-diagram.mmd) (Mermaid, ELK layout).
+Click the diagram to open it full size.
 
 ## Relationships
 

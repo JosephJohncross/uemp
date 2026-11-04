@@ -10,10 +10,7 @@ super admin runs the academic structure, sessions and user accounts.
 - **Design and decisions:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), which covers the
   architecture, permission model, security and the reasoning behind each choice.
 - **Database schema and ER diagram:** [docs/DATABASE.md](docs/DATABASE.md), every table, column,
-  key and constraint, with the diagram also as an image ([PNG](docs/er-diagram.png),
-  [SVG](docs/er-diagram.svg)).
-- **Requirements checklist:** [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md), which maps every point in the
-  brief to the code that meets it.
+  key and constraint, with the diagram also as an image ([PNG](docs/er-diagram.png)).
 
 ## Test accounts
 
