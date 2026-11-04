@@ -1,18 +1,5 @@
 # Database schema and ER diagram
 
-The schema behind UEMP: every table, column, key and constraint, and how the tables relate.
-It is generated from the Django models in `backend/apps/*/models.py` and migrated with
-`python manage.py migrate`. Production runs on PostgreSQL and local development on SQLite, using
-the same migrations.
-
-- [ER diagram](#er-diagram) (also as image files: [er-diagram.png](er-diagram.png), [er-diagram.svg](er-diagram.svg))
-- [Relationships](#relationships)
-- [Tables](#tables)
-- [Constraints](#constraints)
-- [Delete behaviour](#delete-behaviour)
-
-## ER diagram
-
 Types are the PostgreSQL column types. PK = primary key, FK = foreign key, UK = unique.
 The crow's foot marks the "many" side of each relationship, and a circle means optional.
 
