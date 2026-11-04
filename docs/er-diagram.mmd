@@ -1,0 +1,150 @@
+---
+config:
+  layout: elk
+---
+erDiagram
+    accounts_user {
+        bigint id PK
+        varchar email UK
+        varchar password
+        varchar first_name
+        varchar last_name
+        varchar role
+        varchar status
+        bool is_active
+        timestamptz last_login
+        timestamptz date_joined
+    }
+    accounts_studentprofile {
+        bigint id PK
+        bigint user_id FK,UK
+        varchar matric_number UK
+        bigint program_id FK
+        smallint level
+        varchar phone
+        varchar address
+    }
+    accounts_staffprofile {
+        bigint id PK
+        bigint user_id FK,UK
+        varchar staff_id UK
+        bigint department_id FK
+        varchar title
+        varchar phone
+    }
+    academics_faculty {
+        bigint id PK
+        varchar name UK
+        varchar code UK
+    }
+    academics_department {
+        bigint id PK
+        bigint faculty_id FK
+        varchar name UK
+        varchar code UK
+    }
+    academics_program {
+        bigint id PK
+        bigint department_id FK
+        varchar name UK
+        varchar code UK
+        smallint duration_years
+    }
+    academics_academicsession {
+        bigint id PK
+        varchar name UK
+        date start_date
+        date end_date
+    }
+    academics_semester {
+        bigint id PK
+        bigint session_id FK
+        varchar term
+        bool is_current
+        bool registration_open
+    }
+    academics_course {
+        bigint id PK
+        bigint department_id FK
+        varchar code UK
+        varchar title
+        smallint units
+        smallint level
+        varchar term
+        bool is_active
+    }
+    academics_course_programs {
+        bigint id PK
+        bigint course_id FK
+        bigint program_id FK
+    }
+    academics_courseallocation {
+        bigint id PK
+        bigint course_id FK
+        bigint semester_id FK
+        bigint lecturer_id FK
+        timestamptz assigned_at
+    }
+    registration_courseregistration {
+        bigint id PK
+        bigint student_id FK
+        bigint course_id FK
+        bigint semester_id FK
+        timestamptz registered_at
+    }
+    results_resultsheet {
+        bigint id PK
+        bigint course_id FK
+        bigint semester_id FK
+        varchar status
+        bigint submitted_by_id FK
+        timestamptz submitted_at
+        bigint reviewed_by_id FK
+        timestamptz reviewed_at
+        text review_comment
+        timestamptz updated_at
+    }
+    results_score {
+        bigint id PK
+        bigint sheet_id FK
+        bigint registration_id FK,UK
+        smallint ca_score
+        smallint exam_score
+        smallint total
+        varchar grade
+        smallint grade_point
+        timestamptz updated_at
+    }
+    audit_auditlog {
+        bigint id PK
+        bigint actor_id FK
+        varchar action
+        varchar target_type
+        varchar target_id
+        varchar summary
+        jsonb details
+        timestamptz created_at
+    }
+
+    accounts_user ||--o| accounts_studentprofile : "has"
+    accounts_user ||--o| accounts_staffprofile : "has"
+    academics_faculty ||--o{ academics_department : "has"
+    academics_department ||--o{ academics_program : "offers"
+    academics_department ||--o{ academics_course : "owns"
+    academics_department ||--o{ accounts_staffprofile : "employs"
+    academics_program ||--o{ accounts_studentprofile : "enrolls"
+    academics_course ||--o{ academics_course_programs : "offered to"
+    academics_program ||--o{ academics_course_programs : "can take"
+    academics_academicsession ||--|{ academics_semester : "contains"
+    academics_course ||--o{ academics_courseallocation : "allocated"
+    academics_semester ||--o{ academics_courseallocation : "in"
+    accounts_staffprofile ||--o{ academics_courseallocation : "teaches"
+    accounts_studentprofile ||--o{ registration_courseregistration : "registers"
+    academics_course ||--o{ registration_courseregistration : "registered"
+    academics_semester ||--o{ registration_courseregistration : "in"
+    academics_course ||--o{ results_resultsheet : "results"
+    academics_semester ||--o{ results_resultsheet : "in"
+    accounts_user |o--o{ results_resultsheet : "submits / reviews"
+    results_resultsheet ||--o{ results_score : "contains"
+    registration_courseregistration ||--o| results_score : "graded by"
+    accounts_user |o--o{ audit_auditlog : "performs"
