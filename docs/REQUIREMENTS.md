@@ -105,7 +105,7 @@ How each point in the assessment brief is met. "UI" names the screen in the fron
 | RBAC | Three layers: role class, scoped queryset, service rule (architecture §5) |
 | Secure authentication and sessions | HttpOnly SameSite session cookie, CSRF on login, throttling, 8-hour sessions, HSTS |
 | Backend validation of permissions | Every endpoint checks role and scope; the UI guard is only navigation |
-| Database relationships | ER diagram, architecture §4 |
+| Database relationships | ER diagram and relationship table in `docs/DATABASE.md` |
 | Validation and duplicate prevention | Serializers, plus unique and check constraints in the database |
 | Secure storage of academic records | `PROTECT` foreign keys, results editable only in allowed states, approved-only visibility |
 | Audit trails | `AuditLog` on every result step with before/after scores; per-sheet history |
@@ -134,7 +134,7 @@ How each point in the assessment brief is met. "UI" names the screen in the fron
 | Functional portal | `frontend/` + `backend/`; live URLs in the README once deployed |
 | Dashboards for all four roles | `/student`, `/lecturer`, `/department`, `/admin` |
 | Source code | This repository |
-| Database schema / ER diagram | `docs/ARCHITECTURE.md` §4 (Mermaid, renders on GitHub) |
+| Database schema / ER diagram | `docs/DATABASE.md`, with the diagram as `docs/er-diagram.png` and `.svg` |
 | README with setup | `README.md` |
 | Test credentials | `README.md` and one-click buttons on the login page |
 | Technical documentation | `docs/ARCHITECTURE.md` |

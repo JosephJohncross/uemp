@@ -51,29 +51,9 @@ One Django app per domain. Each app owns its models, serializers, views, and `se
 
 ## 4. Data model
 
-```mermaid
-erDiagram
-    FACULTY ||--o{ DEPARTMENT : has
-    DEPARTMENT ||--o{ PROGRAM : offers
-    DEPARTMENT ||--o{ COURSE : owns
-    DEPARTMENT ||--o{ STAFF_PROFILE : employs
-    PROGRAM ||--o{ STUDENT_PROFILE : enrolls
-    PROGRAM }o--o{ COURSE : "course offered to"
-    USER ||--o| STUDENT_PROFILE : "is a"
-    USER ||--o| STAFF_PROFILE : "is a"
-    ACADEMIC_SESSION ||--|{ SEMESTER : contains
-    COURSE ||--o{ COURSE_ALLOCATION : "allocated in"
-    SEMESTER ||--o{ COURSE_ALLOCATION : ""
-    STAFF_PROFILE ||--o{ COURSE_ALLOCATION : teaches
-    STUDENT_PROFILE ||--o{ COURSE_REGISTRATION : registers
-    COURSE ||--o{ COURSE_REGISTRATION : ""
-    SEMESTER ||--o{ COURSE_REGISTRATION : ""
-    COURSE ||--o{ RESULT_SHEET : ""
-    SEMESTER ||--o{ RESULT_SHEET : ""
-    RESULT_SHEET ||--o{ SCORE : contains
-    COURSE_REGISTRATION ||--o| SCORE : "graded by"
-    USER ||--o{ AUDIT_LOG : performs
-```
+The full ER diagram and table-by-table schema are in [DATABASE.md](DATABASE.md), with the
+diagram also as image files ([PNG](er-diagram.png), [SVG](er-diagram.svg)). This section
+summarises the design choices behind it.
 
 ### Key models
 

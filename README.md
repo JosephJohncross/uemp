@@ -8,7 +8,10 @@ super admin runs the academic structure, sessions and user accounts.
 - **Live app:** https://uemp-mu.vercel.app
 - **API:** https://uemp-api.onrender.com (health check: `/api/health/`)
 - **Design and decisions:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), which covers the
-  architecture, ER diagram, permission model, security and the reasoning behind each choice.
+  architecture, permission model, security and the reasoning behind each choice.
+- **Database schema and ER diagram:** [docs/DATABASE.md](docs/DATABASE.md), every table, column,
+  key and constraint, with the diagram also as an image ([PNG](docs/er-diagram.png),
+  [SVG](docs/er-diagram.svg)).
 - **Requirements checklist:** [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md), which maps every point in the
   brief to the code that meets it.
 
