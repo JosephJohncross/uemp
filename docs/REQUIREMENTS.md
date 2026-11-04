@@ -17,7 +17,7 @@ How each point in the assessment brief is met. Tests live under `backend/apps/*/
 | View registered courses and units | `GET /api/student/registration/`; UI *Course registration* | same |
 | View results and semester grades | `GET /api/student/results/`; UI *Results* | `test_students_see_only_approved_results` |
 | View academic history and CGPA | same, grouped by semester with GPA and CGPA | `test_cgpa_weights_results_by_course_units` |
-| Print registration summary and result statement | UI *Print registration slip*, *Print statement* (print stylesheet, D17) | manual |
+| Download or print registration summary and result statement | PDF from `/api/student/registration/slip/` and `/api/student/results/statement/` (D17) | `test_registration_slip_lists_the_students_courses`, `test_result_statement_includes_only_approved_results` |
 | Cannot register other students | Student endpoints take no student ID; the student comes from the session (D15) | `test_student_cannot_register_someone_else` |
 | Cannot upload or modify results | Result endpoints require lecturer/admin roles | `test_access_matrix.py` |
 | Cannot access lecturer or admin dashboards | API role checks; UI route guard | `test_access_matrix.py` |
@@ -29,7 +29,7 @@ How each point in the assessment brief is met. Tests live under `backend/apps/*/
 |---|---|---|
 | Log in to lecturer dashboard | UI *My courses* | `test_access_matrix.py` |
 | View and manage assigned courses | `GET /api/allocations/` (own only) | `test_lecturer_sees_only_own_allocations` |
-| View registered students / class lists | Result sheet rows; UI *Class list & results*, printable | `test_lecturer_sees_class_list_with_empty_scores` |
+| View registered students / class lists | Result sheet rows; UI *Class list & results*; PDF class list | `test_lecturer_sees_class_list_with_empty_scores` |
 | Enter CA and exam scores | `PUT /api/result-sheets/{id}/scores/` | `test_saving_scores_computes_total_and_grade` |
 | Save results as drafts | Same endpoint; sheet stays `DRAFT` | same |
 | Submit for departmental review | `POST .../submit/` | `test_incomplete_sheet_cannot_be_submitted`, `fill_and_submit` |
@@ -53,7 +53,7 @@ How each point in the assessment brief is met. Tests live under `backend/apps/*/
 | View student course registrations | `/api/registrations/`; UI *Registrations* | `test_dept_admin_sees_registrations_for_own_students_and_courses` |
 | Review, approve or reject results | `approve` / `reject` actions; UI *Result approvals* | `test_result_workflow.py` |
 | Return results for correction | `reject` with a required comment → `RETURNED` | `test_rejection_requires_feedback_and_reopens_editing` |
-| Basic departmental reports | `/api/reports/courses/`; UI *Reports* (printable) | manual |
+| Basic departmental reports | `/api/reports/courses/`; UI *Reports*; PDF export | `test_course_report_export` |
 | Only their own department | Queryset scoping + `ensure_department_access()` | `test_dept_admin_gets_404_for_another_departments_student`, `test_dept_admin_cannot_create_student_in_another_department` |
 | No super admin functions or system settings | `IsSuperAdmin` on users, audit log, faculties, sessions | `test_access_matrix.py` |
 
@@ -87,7 +87,7 @@ How each point in the assessment brief is met. Tests live under `backend/apps/*/
 | Result management | `Score`, `grading.py` | Result sheet page |
 | Result approval | `ResultSheet` state machine | *Result approvals* |
 | Academic session management | `AcademicSession`, `Semester` | *Sessions & semesters* |
-| Reports | `reports` app | *Reports*, printable student list |
+| Reports | `reports` app, PDF documents | *Reports*, downloadable student list and course report |
 | Admin dashboard | `/api/reports/overview/` | Super admin *Dashboard* |
 
 ## 4. Workflows

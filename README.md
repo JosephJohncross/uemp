@@ -93,7 +93,7 @@ Vite forwards `/api` to the backend, so open the app at http://localhost:5173.
 ### Tests and checks
 
 ```bash
-cd backend && pytest                       # 166 tests: permissions, workflows, grading
+cd backend && pytest                       # 180 tests: permissions, workflows, grading, documents
 cd backend && ruff check . && ruff format --check .
 cd frontend && npm run lint && npm run build
 ```
@@ -136,7 +136,7 @@ session cookie stays first-party (see decision D11 in the architecture doc).
 
 The live deployment uses `https://uemp-mu.vercel.app` and `https://uemp-api.onrender.com`.
 Vercel redeploys on every push to `main`. The Render Blueprint was created from the public repository
-URL, so after pushing, click **Manual sync** on the Blueprint (or **Manual Deploy** on the service)
+URL, so after pushing, open the `uemp-api` service and click **Manual Deploy → Deploy latest commit**
 to update the API.
 
 Render's free tier sleeps after 15 minutes idle, so the first request can take up to a minute.
